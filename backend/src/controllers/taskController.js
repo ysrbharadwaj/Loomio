@@ -1,0 +1,761 @@
+const { Task, User, TaskAssignment, Community, Contribution } = require('../models');
+const { Op } = require('sequelize');
+
+// Get all tasks
+const getAllTasks = async (req, res) => {
+  try {
+    const { 
+      page = 1, 
+      limit = 10, 
+      status = '', 
+      priority = '', 
+      community_id = '',
+      assigned_to = '',
+      search = ''
+    } = req.query;
+    
+    const offset = (page - 1) * limit;
+    const whereClause = {};
+
+    // Filter by community - get user's communities first
+    if (req.user.role !== 'platform_admin') {
+      // Get user's communities through UserCommunity association
+      const { UserCommunity } = require('../models');
+      const userCommunities = await UserCommunity.findAll({
+        where: { user_id: req.user.user_id },
+        attributes: ['community_id']
+      });
+      
+      const communityIds = userCommunities.map(uc => uc.community_id);
+      if (communityIds.length === 0) {
+        return res.json({ tasks: [], pagination: { total: 0, page: 1, limit: parseInt(limit), pages: 0 } });
+      }
+      
+      if (community_id && communityIds.includes(parseInt(community_id))) {
+        whereClause.community_id = parseInt(community_id);
+      } else {
+        whereClause.community_id = { [Op.in]: communityIds };
+      }
+    } else if (community_id) {
+      whereClause.community_id = community_id;
+    }
+
+    if (status) {
+      whereClause.status = status;
+    }
+
+    if (priority) {
+      whereClause.priority = priority;
+    }
+
+    if (search) {
+      whereClause[Op.or] = [
+        { title: { [Op.iLike]: `%${search}%` } },
+        { description: { [Op.iLike]: `%${search}%` } }
+      ];
+    }
+
+    const tasks = await Task.findAndCountAll({
+      where: whereClause,
+      include: [
+        { 
+          model: User, 
+          as: 'creator', 
+          attributes: ['user_id', 'full_name', 'email'] 
+        },
+        { 
+          model: User, 
+          as: 'assignees', 
+          attributes: ['user_id', 'full_name', 'email'],
+          through: { 
+            attributes: ['status', 'assigned_at', 'accepted_at', 'completed_at'],
+            as: 'TaskAssignment'
+          },
+          required: false
+        },
+        { 
+          model: User, 
+          as: 'reviewer', 
+          attributes: ['user_id', 'full_name', 'email'],
+          required: false
+        },
+        { 
+          model: Community, 
+          as: 'community', 
+          attributes: ['community_id', 'name'] 
+        }
+      ],
+      limit: parseInt(limit),
+      offset: parseInt(offset),
+      order: [['created_at', 'DESC']]
+    });
+
+    // Filter by assigned user if specified
+    let filteredTasks = tasks.rows;
+    if (assigned_to) {
+      filteredTasks = tasks.rows.filter(task => 
+        task.assignees.some(assignee => assignee.user_id === parseInt(assigned_to))
+      );
+    }
+
+    res.json({
+      tasks: filteredTasks,
+      pagination: {
+        total: filteredTasks.length,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        pages: Math.ceil(filteredTasks.length / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Get tasks error:', error);
+    res.status(500).json({ message: 'Failed to fetch tasks', error: error.message });
+  }
+};
+
+// Get task by ID
+const getTaskById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const task = await Task.findByPk(id, {
+      include: [
+        { 
+          model: User, 
+          as: 'creator', 
+          attributes: ['user_id', 'full_name', 'email'] 
+        },
+        { 
+          model: User, 
+          as: 'assignees', 
+          attributes: ['user_id', 'full_name', 'email'],
+          through: { 
+            attributes: ['status', 'assigned_at', 'accepted_at', 'completed_at', 'notes'],
+            as: 'TaskAssignment'
+          },
+          required: false
+        },
+        { 
+          model: User, 
+          as: 'reviewer', 
+          attributes: ['user_id', 'full_name', 'email'],
+          required: false
+        },
+        { 
+          model: Community, 
+          as: 'community', 
+          attributes: ['community_id', 'name'] 
+        }
+      ]
+    });
+
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' });
+    }
+
+    // Check permissions
+    if (req.user.role !== 'platform_admin' && task.community_id !== req.user.community_id) {
+      return res.status(403).json({ message: 'Insufficient permissions' });
+    }
+
+    res.json({ task: task.toJSON() });
+  } catch (error) {
+    console.error('Get task error:', error);
+    res.status(500).json({ message: 'Failed to fetch task', error: error.message });
+  }
+};
+
+// Create new task
+const createTask = async (req, res) => {
+  try {
+    const { 
+      title, 
+      description, 
+      deadline, 
+      priority = 'medium', 
+      estimated_hours,
+      tags = [],
+      assignee_ids = [],
+      community_id
+    } = req.body;
+
+    const assigned_by = req.user.user_id;
+
+    if (!community_id) {
+      return res.status(400).json({ message: 'Community ID is required to create tasks' });
+    }
+
+    // Verify user is a member of the community and has admin role
+    const { UserCommunity } = require('../models');
+    const userCommunity = await UserCommunity.findOne({
+      where: { 
+        user_id: req.user.user_id, 
+        community_id: parseInt(community_id)
+      }
+    });
+
+    if (!userCommunity) {
+      return res.status(403).json({ message: 'You must be a member of this community to create tasks' });
+    }
+
+    if (userCommunity.role !== 'community_admin') {
+      return res.status(403).json({ message: 'Only community administrators can create tasks' });
+    }
+
+    // Create task
+    const task = await Task.create({
+      title,
+      description,
+      assigned_by,
+      deadline: deadline ? new Date(deadline) : null,
+      priority,
+      estimated_hours,
+      tags,
+      community_id
+    });
+
+    // Assign users if specified
+    if (assignee_ids.length > 0) {
+      const assignments = assignee_ids.map(userId => ({
+        task_id: task.task_id,
+        user_id: userId,
+        assigned_at: new Date()
+      }));
+
+      await TaskAssignment.bulkCreate(assignments);
+    }
+
+    // Get created task with relations
+    const createdTask = await Task.findByPk(task.task_id, {
+      include: [
+        { 
+          model: User, 
+          as: 'creator', 
+          attributes: ['user_id', 'full_name', 'email'] 
+        },
+        { 
+          model: User, 
+          as: 'assignees', 
+          attributes: ['user_id', 'full_name', 'email'],
+          through: { attributes: ['status', 'assigned_at'] }
+        },
+        { 
+          model: Community, 
+          as: 'community', 
+          attributes: ['community_id', 'name'] 
+        }
+      ]
+    });
+
+    res.status(201).json({
+      message: 'Task created successfully',
+      task: createdTask.toJSON()
+    });
+  } catch (error) {
+    console.error('Create task error:', error);
+    res.status(500).json({ message: 'Failed to create task', error: error.message });
+  }
+};
+
+// Update task
+const updateTask = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { 
+      title, 
+      description, 
+      deadline, 
+      priority, 
+      estimated_hours,
+      tags,
+      status
+    } = req.body;
+
+    const task = await Task.findByPk(id);
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' });
+    }
+
+    // Check permissions
+    if (req.user.role !== 'platform_admin' && task.community_id !== req.user.community_id) {
+      return res.status(403).json({ message: 'Insufficient permissions' });
+    }
+
+    // Update task
+    const updateData = {};
+    if (title !== undefined) updateData.title = title;
+    if (description !== undefined) updateData.description = description;
+    if (deadline !== undefined) updateData.deadline = deadline ? new Date(deadline) : null;
+    if (priority !== undefined) updateData.priority = priority;
+    if (estimated_hours !== undefined) updateData.estimated_hours = estimated_hours;
+    if (tags !== undefined) updateData.tags = tags;
+    if (status !== undefined) {
+      updateData.status = status;
+      if (status === 'completed') {
+        updateData.completion_date = new Date();
+      }
+    }
+
+    await task.update(updateData);
+
+    // Get updated task with relations
+    const updatedTask = await Task.findByPk(id, {
+      include: [
+        { 
+          model: User, 
+          as: 'creator', 
+          attributes: ['user_id', 'full_name', 'email'] 
+        },
+        { 
+          model: User, 
+          as: 'assignees', 
+          attributes: ['user_id', 'full_name', 'email'],
+          through: { attributes: ['status', 'assigned_at', 'accepted_at', 'completed_at'] }
+        },
+        { 
+          model: Community, 
+          as: 'community', 
+          attributes: ['community_id', 'name'] 
+        }
+      ]
+    });
+
+    res.json({
+      message: 'Task updated successfully',
+      task: updatedTask.toJSON()
+    });
+  } catch (error) {
+    console.error('Update task error:', error);
+    res.status(500).json({ message: 'Failed to update task', error: error.message });
+  }
+};
+
+// Delete task
+const deleteTask = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const task = await Task.findByPk(id);
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' });
+    }
+
+    // Check permissions
+    if (req.user.role !== 'platform_admin' && task.community_id !== req.user.community_id) {
+      return res.status(403).json({ message: 'Insufficient permissions' });
+    }
+
+    // Delete task assignments first
+    await TaskAssignment.destroy({ where: { task_id: id } });
+
+    // Delete task
+    await task.destroy();
+
+    res.json({ message: 'Task deleted successfully' });
+  } catch (error) {
+    console.error('Delete task error:', error);
+    res.status(500).json({ message: 'Failed to delete task', error: error.message });
+  }
+};
+
+// Assign task to users
+const assignTask = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { user_ids } = req.body;
+
+    const task = await Task.findByPk(id);
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' });
+    }
+
+    // Check permissions
+    if (req.user.role !== 'platform_admin' && task.community_id !== req.user.community_id) {
+      return res.status(403).json({ message: 'Insufficient permissions' });
+    }
+
+    // Remove existing assignments
+    await TaskAssignment.destroy({ where: { task_id: id } });
+
+    // Create new assignments
+    if (user_ids && user_ids.length > 0) {
+      const assignments = user_ids.map(userId => ({
+        task_id: id,
+        user_id: userId,
+        assigned_at: new Date()
+      }));
+
+      await TaskAssignment.bulkCreate(assignments);
+    }
+
+    // Get updated task with assignments
+    const updatedTask = await Task.findByPk(id, {
+      include: [
+        { 
+          model: User, 
+          as: 'assignees', 
+          attributes: ['user_id', 'full_name', 'email'],
+          through: { attributes: ['status', 'assigned_at'] }
+        }
+      ]
+    });
+
+    res.json({
+      message: 'Task assignments updated successfully',
+      task: updatedTask.toJSON()
+    });
+  } catch (error) {
+    console.error('Assign task error:', error);
+    res.status(500).json({ message: 'Failed to assign task', error: error.message });
+  }
+};
+
+// Update task assignment status
+const updateAssignmentStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, notes } = req.body;
+    const userId = req.user.user_id;
+
+    const assignment = await TaskAssignment.findOne({
+      where: { task_id: id, user_id: userId }
+    });
+
+    if (!assignment) {
+      return res.status(404).json({ message: 'Task assignment not found' });
+    }
+
+    const updateData = { status };
+    if (notes !== undefined) updateData.notes = notes;
+
+    if (status === 'accepted') {
+      updateData.accepted_at = new Date();
+    } else if (status === 'completed') {
+      updateData.completed_at = new Date();
+      
+      // Award points for task completion
+      const task = await Task.findByPk(id);
+      if (task) {
+        await Contribution.create({
+          user_id: userId,
+          task_id: id,
+          points: 10, // Default task completion points
+          type: 'task_completion',
+          description: `Completed task: ${task.title}`,
+          community_id: task.community_id
+        });
+
+        // Update user points
+        await User.increment('points', { 
+          by: 10, 
+          where: { user_id: userId } 
+        });
+      }
+    }
+
+    await assignment.update(updateData);
+
+    res.json({
+      message: 'Assignment status updated successfully',
+      assignment: assignment.toJSON()
+    });
+  } catch (error) {
+    console.error('Update assignment status error:', error);
+    res.status(500).json({ message: 'Failed to update assignment status', error: error.message });
+  }
+};
+
+// Get user's tasks
+const getUserTasks = async (req, res) => {
+  try {
+    const { status = '', page = 1, limit = 10 } = req.query;
+    const offset = (page - 1) * limit;
+    const userId = req.params.userId || req.user.user_id;
+
+    const whereClause = { user_id: userId };
+    if (status) {
+      whereClause.status = status;
+    }
+
+    const assignments = await TaskAssignment.findAndCountAll({
+      where: whereClause,
+      include: [
+        {
+          model: Task,
+          include: [
+            { model: User, as: 'creator', attributes: ['user_id', 'full_name', 'email'] },
+            { model: Community, as: 'community', attributes: ['community_id', 'name'] }
+          ]
+        }
+      ],
+      limit: parseInt(limit),
+      offset: parseInt(offset),
+      order: [['assigned_at', 'DESC']]
+    });
+
+    res.json({
+      tasks: assignments.rows,
+      pagination: {
+        total: assignments.count,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        pages: Math.ceil(assignments.count / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Get user tasks error:', error);
+    res.status(500).json({ message: 'Failed to fetch user tasks', error: error.message });
+  }
+};
+
+// Assign task to specific users
+const assignTaskToUsers = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { user_ids } = req.body;
+
+    if (!user_ids || !Array.isArray(user_ids) || user_ids.length === 0) {
+      return res.status(400).json({ message: 'User IDs array is required' });
+    }
+
+    const task = await Task.findByPk(id, {
+      include: [{ model: Community, as: 'community' }]
+    });
+
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' });
+    }
+
+    // Verify user is admin of the community
+    const { UserCommunity } = require('../models');
+    const userCommunity = await UserCommunity.findOne({
+      where: { 
+        user_id: req.user.user_id, 
+        community_id: task.community_id,
+        role: 'community_admin'
+      }
+    });
+
+    if (!userCommunity && req.user.role !== 'platform_admin') {
+      return res.status(403).json({ message: 'Only community administrators can assign tasks' });
+    }
+
+    // Create assignments for each user
+    const assignments = [];
+    for (const user_id of user_ids) {
+      try {
+        const assignment = await TaskAssignment.create({
+          task_id: parseInt(id),
+          user_id: parseInt(user_id),
+          status: 'assigned'
+        });
+        assignments.push(assignment);
+      } catch (error) {
+        if (error.name === 'SequelizeUniqueConstraintError') {
+          // User already assigned, skip
+          continue;
+        }
+        throw error;
+      }
+    }
+
+    res.json({
+      message: `Task assigned to ${assignments.length} users`,
+      assignments: assignments
+    });
+  } catch (error) {
+    console.error('Assign task to users error:', error);
+    res.status(500).json({ message: 'Failed to assign task', error: error.message });
+  }
+};
+
+// Self-assign to available task
+const selfAssignTask = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const task = await Task.findByPk(id, {
+      include: [{ model: Community, as: 'community' }]
+    });
+
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' });
+    }
+
+    if (task.status !== 'not_started') {
+      return res.status(400).json({ message: 'Task is not available for self-assignment' });
+    }
+
+    // Verify user is member of the community
+    const { UserCommunity } = require('../models');
+    const userCommunity = await UserCommunity.findOne({
+      where: { 
+        user_id: req.user.user_id, 
+        community_id: task.community_id,
+        is_active: true
+      }
+    });
+
+    if (!userCommunity) {
+      return res.status(403).json({ message: 'You must be a member of this community to self-assign tasks' });
+    }
+
+    // Create assignment
+    const assignment = await TaskAssignment.create({
+      task_id: parseInt(id),
+      user_id: req.user.user_id,
+      status: 'accepted',
+      accepted_at: new Date()
+    });
+
+    // Update task status
+    await task.update({ status: 'in_progress' });
+
+    res.json({
+      message: 'Successfully self-assigned to task',
+      assignment: assignment
+    });
+  } catch (error) {
+    if (error.name === 'SequelizeUniqueConstraintError') {
+      return res.status(400).json({ message: 'You are already assigned to this task' });
+    }
+    console.error('Self-assign task error:', error);
+    res.status(500).json({ message: 'Failed to self-assign task', error: error.message });
+  }
+};
+
+// Submit task completion
+const submitTask = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { submission_link, submission_notes } = req.body;
+
+    // Find user's assignment for this task
+    const assignment = await TaskAssignment.findOne({
+      where: {
+        task_id: parseInt(id),
+        user_id: req.user.user_id
+      },
+      include: [{ model: Task }]
+    });
+
+    if (!assignment) {
+      return res.status(404).json({ message: 'Task assignment not found' });
+    }
+
+    if (!['accepted', 'in_progress'].includes(assignment.status)) {
+      return res.status(400).json({ message: 'Task cannot be submitted in current status' });
+    }
+
+    // Update task with submission details
+    await assignment.Task.update({
+      status: 'submitted',
+      submission_link: submission_link || null,
+      submission_notes: submission_notes || null,
+      submitted_at: new Date()
+    });
+
+    // Update assignment status
+    await assignment.update({
+      status: 'submitted'
+    });
+
+    res.json({
+      message: 'Task submitted successfully. Awaiting admin review.',
+      task: await Task.findByPk(id, {
+        include: [
+          { model: User, as: 'creator', attributes: ['user_id', 'full_name', 'email'] },
+          { model: Community, as: 'community', attributes: ['community_id', 'name'] }
+        ]
+      })
+    });
+  } catch (error) {
+    console.error('Submit task error:', error);
+    res.status(500).json({ message: 'Failed to submit task', error: error.message });
+  }
+};
+
+// Approve or reject task submission
+const reviewTaskSubmission = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { action, review_notes } = req.body; // action: 'approve' or 'reject'
+
+    if (!['approve', 'reject'].includes(action)) {
+      return res.status(400).json({ message: 'Action must be either "approve" or "reject"' });
+    }
+
+    const task = await Task.findByPk(id);
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' });
+    }
+
+    if (task.status !== 'submitted') {
+      return res.status(400).json({ message: 'Task is not in submitted status' });
+    }
+
+    // Verify user is admin of the community
+    const { UserCommunity } = require('../models');
+    const userCommunity = await UserCommunity.findOne({
+      where: { 
+        user_id: req.user.user_id, 
+        community_id: task.community_id,
+        role: 'community_admin'
+      }
+    });
+
+    if (!userCommunity && req.user.role !== 'platform_admin') {
+      return res.status(403).json({ message: 'Only community administrators can review task submissions' });
+    }
+
+    const newStatus = action === 'approve' ? 'completed' : 'rejected';
+    const completionDate = action === 'approve' ? new Date() : null;
+
+    // Update task
+    await task.update({
+      status: newStatus,
+      reviewed_by: req.user.user_id,
+      reviewed_at: new Date(),
+      review_notes: review_notes || null,
+      completion_date: completionDate
+    });
+
+    // Update all assignments for this task
+    await TaskAssignment.update(
+      { 
+        status: newStatus,
+        completed_at: completionDate
+      },
+      { where: { task_id: parseInt(id) } }
+    );
+
+    res.json({
+      message: `Task ${action}d successfully`,
+      task: await Task.findByPk(id, {
+        include: [
+          { model: User, as: 'creator', attributes: ['user_id', 'full_name', 'email'] },
+          { model: User, as: 'reviewer', attributes: ['user_id', 'full_name', 'email'] },
+          { model: Community, as: 'community', attributes: ['community_id', 'name'] }
+        ]
+      })
+    });
+  } catch (error) {
+    console.error('Review task submission error:', error);
+    res.status(500).json({ message: 'Failed to review task submission', error: error.message });
+  }
+};
+
+module.exports = {
+  getAllTasks,
+  getTaskById,
+  createTask,
+  updateTask,
+  deleteTask,
+  assignTask,
+  updateAssignmentStatus,
+  getUserTasks,
+  assignTaskToUsers,
+  selfAssignTask,
+  submitTask,
+  reviewTaskSubmission
+};
