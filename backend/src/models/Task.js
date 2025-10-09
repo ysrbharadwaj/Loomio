@@ -89,6 +89,18 @@ const Task = sequelize.define('Task', {
   completion_date: {
     type: DataTypes.DATE,
     allowNull: true
+  },
+  task_type: {
+    type: DataTypes.ENUM('individual', 'group'),
+    defaultValue: 'individual'
+  },
+  max_assignees: {
+    type: DataTypes.INTEGER,
+    defaultValue: 1,
+    validate: {
+      min: 1,
+      max: 50
+    }
   }
 }, {
   tableName: 'tasks',

@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserGroupIcon, QrCodeIcon, ClipboardDocumentIcon } from '@heroicons/react/24/outline';
 import { communityAPI } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const JoinCommunity = () => {
+  const { user } = useAuth();
   const [communityCode, setCommunityCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -137,14 +139,19 @@ const JoinCommunity = () => {
                   Don't have a community code?
                 </h3>
                 <p className="text-xs text-secondary-600 mb-3">
-                  Ask your community admin for the 6-character join code, or create your own community.
+                  {(user?.role === 'platform_admin' || user?.role === 'community_admin') 
+                    ? 'Ask your community admin for the 6-character join code, or create your own community.'
+                    : 'Ask your community admin for the 6-character join code to join a community.'
+                  }
                 </p>
-                <button 
-                  onClick={() => navigate('/communities')}
-                  className="text-xs text-primary-600 hover:text-primary-700 font-semibold"
-                >
-                  Create New Community →
-                </button>
+                {(user?.role === 'platform_admin' || user?.role === 'community_admin') && (
+                  <button 
+                    onClick={() => navigate('/communities')}
+                    className="text-xs text-primary-600 hover:text-primary-700 font-semibold"
+                  >
+                    Create New Community →
+                  </button>
+                )}
               </div>
             </div>
           </div>

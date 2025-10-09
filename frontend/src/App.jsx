@@ -12,6 +12,7 @@ import Tasks from './pages/Tasks';
 import Calendar from './pages/Calendar';
 import Profile from './pages/Profile';
 import Notifications from './pages/Notifications';
+import Analytics from './pages/Analytics';
 import LoadingSpinner from './components/LoadingSpinner';
 
 function App() {
@@ -39,6 +40,7 @@ function App() {
               <Route path="profile" element={<Profile />} />
               <Route path="settings" element={<Profile />} />
               <Route path="notifications" element={<Notifications />} />
+              <Route path="analytics" element={<Analytics />} />
             </Route>
             
             {/* Catch all route */}

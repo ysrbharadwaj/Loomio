@@ -43,11 +43,12 @@ const Calendar = () => {
       const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
       const endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
       
-      // Fetch user's tasks
+      // Fetch user's tasks for calendar
       const tasksResponse = await api.get('/tasks', {
         params: {
           start_date: startDate.toISOString().split('T')[0],
-          end_date: endDate.toISOString().split('T')[0]
+          end_date: endDate.toISOString().split('T')[0],
+          limit: 100 // Get more tasks for calendar view
         }
       });
       
@@ -63,36 +64,9 @@ const Calendar = () => {
       setEvents(eventsResponse.data.events || []);
     } catch (error) {
       console.error('Failed to fetch calendar data:', error);
-      // Use sample data as fallback
-      setEvents([
-        {
-          id: 1,
-          title: "Community Meeting",
-          date: "2025-10-08",
-          time: "10:00",
-          location: "Community Hall",
-          attendees: 15,
-          type: "meeting"
-        },
-        {
-          id: 2,
-          title: "Volunteer Drive",
-          date: "2025-10-15",
-          time: "14:00",
-          location: "Local Park",
-          attendees: 8,
-          type: "volunteer"
-        },
-        {
-          id: 3,
-          title: "Workshop: Leadership",
-          date: "2025-10-22",
-          time: "16:00",
-          location: "Conference Room",
-          attendees: 12,
-          type: "workshop"
-        }
-      ]);
+      // Don't use fallback data - show empty state instead
+      setUserTasks([]);
+      setEvents([]);
     } finally {
       setIsLoading(false);
     }
@@ -127,7 +101,7 @@ const Calendar = () => {
     
     const dayEvents = events.filter(event => event.date === dateString);
     const dayTasks = userTasks.filter(task => {
-      const taskDate = task.due_date ? task.due_date.split('T')[0] : null;
+      const taskDate = task.deadline ? task.deadline.split('T')[0] : null;
       return taskDate === dateString;
     });
     
@@ -298,10 +272,10 @@ const Calendar = () => {
                       <div className="w-3 h-3 rounded-full mt-1.5 bg-green-600"></div>
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-gray-900 truncate">{task.title}</p>
-                        {task.due_date && (
+                        {task.deadline && (
                           <div className="flex items-center text-sm text-gray-600 mt-1">
                             <ClockIcon className="w-4 h-4 mr-1" />
-                            Due: {new Date(task.due_date).toLocaleDateString()}
+                            Due: {new Date(task.deadline).toLocaleDateString()}
                           </div>
                         )}
                         <div className="flex items-center text-sm text-gray-600 mt-1">

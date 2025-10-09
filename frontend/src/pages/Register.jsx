@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { EyeIcon, EyeSlashIcon, UserPlusIcon, CheckCircleIcon, SparklesIcon, UserGroupIcon } from '@heroicons/react/24/outline';
+import { EyeIcon, EyeSlashIcon, UserGroupIcon } from '@heroicons/react/24/outline';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 const Register = () => {
@@ -38,6 +38,7 @@ const Register = () => {
       ...prev,
       [name]: value
     }));
+    
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
@@ -57,16 +58,16 @@ const Register = () => {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.full_name.trim()) {
+    if (!formData.full_name) {
       newErrors.full_name = 'Full name is required';
-    } else if (formData.full_name.trim().length < 2) {
+    } else if (formData.full_name.length < 2) {
       newErrors.full_name = 'Full name must be at least 2 characters';
     }
 
     if (!formData.email) {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
+      newErrors.email = 'Please enter a valid email address';
     }
 
     if (!formData.password) {
@@ -93,8 +94,7 @@ const Register = () => {
     }
 
     setIsSubmitting(true);
-    const { confirmPassword, ...userData } = formData;
-    const result = await register(userData);
+    const result = await register(formData);
     setIsSubmitting(false);
     
     if (!result.success) {
@@ -104,234 +104,212 @@ const Register = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-white to-accent-50">
-        <div className="animate-pulse-soft">
-          <LoadingSpinner size="lg" />
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-900 via-teal-900 to-cyan-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-float"></div>
-        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-float" style={{animationDelay: '2s'}}></div>
-        <div className="absolute top-40 right-1/4 w-80 h-80 bg-gradient-to-r from-teal-400 to-cyan-500 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-float" style={{animationDelay: '4s'}}></div>
-        <div className="absolute bottom-1/4 left-1/4 w-64 h-64 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-float" style={{animationDelay: '6s'}}></div>
-      </div>
-
-      <div className="relative z-10 max-w-lg w-full space-y-8 animate-fade-in-up">
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
         {/* Header */}
-        <div className="text-center animate-fade-in-down">
-          <div className="mx-auto h-20 w-20 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 rounded-full flex items-center justify-center mb-6 animate-scale-in shadow-2xl shadow-emerald-500/50 animate-glow">
-            <UserPlusIcon className="h-10 w-10 text-white animate-pulse-soft" />
+        <div className="text-center">
+          <div className="mx-auto h-16 w-16 bg-primary-600 rounded-full flex items-center justify-center mb-6">
+            <UserGroupIcon className="h-8 w-8 text-white" />
           </div>
-          <h2 className="text-5xl font-extrabold bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent mb-2 animate-bounce-gentle">
-            Join Loomio
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">
+            Create Account
           </h2>
-          <p className="text-white/80 text-xl font-medium">
-            Create your account and start <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent font-bold">collaborating</span>
+          <p className="text-gray-600">
+            Join the Loomio community
           </p>
         </div>
+      </div>
 
-        {/* Form Card */}
-        <div className="bg-white/10 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/30 p-8 animate-scale-in hover:shadow-emerald-500/20 hover:shadow-2xl transition-all duration-500 hover:scale-105 group">
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white py-8 px-4 shadow-sm rounded-xl border sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
+            {/* General Error */}
+            {errors.general && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <p className="text-red-800 text-sm">{errors.general}</p>
+              </div>
+            )}
+
             {/* Full Name Field */}
-            <div className="space-y-2">
-              <label htmlFor="full_name" className="block text-sm font-semibold text-secondary-700">
+            <div>
+              <label htmlFor="full_name" className="block text-sm font-medium text-gray-700">
                 Full Name
               </label>
-              <div className="relative">
+              <div className="mt-1">
                 <input
                   id="full_name"
                   name="full_name"
                   type="text"
+                  autoComplete="name"
+                  required
                   value={formData.full_name}
                   onChange={handleChange}
-                  className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 focus:outline-none focus:ring-0 ${
+                  className={`appearance-none block w-full px-3 py-2 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm ${
                     errors.full_name 
-                      ? 'border-error-300 focus:border-error-500 bg-error-50' 
-                      : 'border-secondary-200 focus:border-primary-500 bg-white/50 hover:border-primary-300'
-                  } placeholder-secondary-400 text-secondary-900`}
+                      ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
+                      : 'border-gray-300'
+                  }`}
                   placeholder="Enter your full name"
                 />
-                {formData.full_name && !errors.full_name && (
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                    <CheckCircleIcon className="h-5 w-5 text-success-400 animate-scale-in" />
-                  </div>
-                )}
               </div>
-              {errors.full_name && (
-                <p className="text-sm text-error-600 animate-fade-in">{errors.full_name}</p>
-              )}
+              {errors.full_name && <p className="mt-2 text-sm text-red-600">{errors.full_name}</p>}
             </div>
 
             {/* Email Field */}
-            <div className="space-y-2">
-              <label htmlFor="email" className="block text-sm font-semibold text-secondary-700">
-                Email Address
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                Email address
               </label>
-              <div className="relative">
+              <div className="mt-1">
                 <input
                   id="email"
                   name="email"
                   type="email"
+                  autoComplete="email"
+                  required
                   value={formData.email}
                   onChange={handleChange}
-                  className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 focus:outline-none focus:ring-0 ${
+                  className={`appearance-none block w-full px-3 py-2 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm ${
                     errors.email 
-                      ? 'border-error-300 focus:border-error-500 bg-error-50' 
-                      : 'border-secondary-200 focus:border-primary-500 bg-white/50 hover:border-primary-300'
-                  } placeholder-secondary-400 text-secondary-900`}
+                      ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
+                      : 'border-gray-300'
+                  }`}
                   placeholder="Enter your email"
                 />
-                {formData.email && !errors.email && (
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                    <div className="w-2 h-2 bg-success-400 rounded-full animate-pulse-soft"></div>
-                  </div>
-                )}
               </div>
-              {errors.email && (
-                <p className="text-sm text-error-600 animate-fade-in">{errors.email}</p>
-              )}
+              {errors.email && <p className="mt-2 text-sm text-red-600">{errors.email}</p>}
             </div>
 
-            {/* Role Field */}
-            <div className="space-y-2">
-              <label htmlFor="role" className="block text-sm font-semibold text-secondary-700">
+            {/* Role Selection */}
+            <div>
+              <label htmlFor="role" className="block text-sm font-medium text-gray-700">
                 Role
               </label>
-              <select
-                id="role"
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
-                className="w-full px-4 py-3 rounded-xl border-2 border-secondary-200 focus:border-primary-500 bg-white/50 hover:border-primary-300 focus:outline-none focus:ring-0 transition-all duration-200 text-secondary-900"
-              >
-                <option value="member">Member</option>
-                <option value="community_admin">Community Admin</option>
-              </select>
+              <div className="mt-1">
+                <select
+                  id="role"
+                  name="role"
+                  value={formData.role}
+                  onChange={handleChange}
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                >
+                  <option value="member">Community Member</option>
+                  <option value="community_admin">Community Admin</option>
+                  <option value="platform_admin">Platform Admin</option>
+                </select>
+              </div>
             </div>
 
             {/* Password Field */}
-            <div className="space-y-2">
-              <label htmlFor="password" className="block text-sm font-semibold text-secondary-700">
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 Password
               </label>
-              <div className="relative">
+              <div className="mt-1 relative">
                 <input
                   id="password"
                   name="password"
                   type={showPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  required
                   value={formData.password}
                   onChange={handleChange}
-                  className={`w-full px-4 py-3 pr-12 rounded-xl border-2 transition-all duration-200 focus:outline-none focus:ring-0 ${
+                  className={`appearance-none block w-full px-3 py-2 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm pr-10 ${
                     errors.password 
-                      ? 'border-error-300 focus:border-error-500 bg-error-50' 
-                      : 'border-secondary-200 focus:border-primary-500 bg-white/50 hover:border-primary-300'
-                  } placeholder-secondary-400 text-secondary-900`}
-                  placeholder="Enter your password"
+                      ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
+                      : 'border-gray-300'
+                  }`}
+                  placeholder="Create a password"
                 />
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-secondary-400 hover:text-secondary-600 transition-colors duration-200"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
-                    <EyeSlashIcon className="h-5 w-5" />
+                    <EyeSlashIcon className="h-5 w-5 text-gray-400 hover:text-gray-600" />
                   ) : (
-                    <EyeIcon className="h-5 w-5" />
+                    <EyeIcon className="h-5 w-5 text-gray-400 hover:text-gray-600" />
                   )}
                 </button>
               </div>
-              {errors.password && (
-                <p className="text-sm text-error-600 animate-fade-in">{errors.password}</p>
-              )}
+              {errors.password && <p className="mt-2 text-sm text-red-600">{errors.password}</p>}
             </div>
 
             {/* Confirm Password Field */}
-            <div className="space-y-2">
-              <label htmlFor="confirmPassword" className="block text-sm font-semibold text-secondary-700">
+            <div>
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
                 Confirm Password
               </label>
-              <div className="relative">
+              <div className="mt-1 relative">
                 <input
                   id="confirmPassword"
                   name="confirmPassword"
                   type={showConfirmPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  required
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className={`w-full px-4 py-3 pr-12 rounded-xl border-2 transition-all duration-200 focus:outline-none focus:ring-0 ${
+                  className={`appearance-none block w-full px-3 py-2 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm pr-10 ${
                     errors.confirmPassword 
-                      ? 'border-error-300 focus:border-error-500 bg-error-50' 
-                      : formData.confirmPassword && formData.password === formData.confirmPassword
-                      ? 'border-success-300 focus:border-success-500 bg-success-50'
-                      : 'border-secondary-200 focus:border-primary-500 bg-white/50 hover:border-primary-300'
-                  } placeholder-secondary-400 text-secondary-900`}
+                      ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
+                      : 'border-gray-300'
+                  }`}
                   placeholder="Confirm your password"
                 />
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-secondary-400 hover:text-secondary-600 transition-colors duration-200"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 >
                   {showConfirmPassword ? (
-                    <EyeSlashIcon className="h-5 w-5" />
+                    <EyeSlashIcon className="h-5 w-5 text-gray-400 hover:text-gray-600" />
                   ) : (
-                    <EyeIcon className="h-5 w-5" />
+                    <EyeIcon className="h-5 w-5 text-gray-400 hover:text-gray-600" />
                   )}
                 </button>
               </div>
-              {errors.confirmPassword && (
-                <p className="text-sm text-error-600 animate-fade-in">{errors.confirmPassword}</p>
-              )}
-              {formData.confirmPassword && formData.password === formData.confirmPassword && (
-                <p className="text-sm text-success-600 animate-fade-in flex items-center">
-                  <CheckCircleIcon className="h-4 w-4 mr-1" />
-                  Passwords match
-                </p>
-              )}
+              {errors.confirmPassword && <p className="mt-2 text-sm text-red-600">{errors.confirmPassword}</p>}
             </div>
 
-            {/* Error Message */}
-            {errors.general && (
-              <div className="bg-error-50 border border-error-200 rounded-xl p-4 animate-fade-in">
-                <div className="text-sm text-error-700">{errors.general}</div>
-              </div>
-            )}
-
             {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full bg-gradient-to-r from-accent-500 to-primary-500 hover:from-accent-600 hover:to-primary-600 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 transform hover:scale-105 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none focus:outline-none focus:ring-4 focus:ring-accent-200"
-            >
-              {isSubmitting ? (
-                <div className="flex items-center justify-center">
-                  <LoadingSpinner size="sm" className="mr-2" />
-                  Creating account...
-                </div>
-              ) : (
-                'Create Account'
-              )}
-            </button>
-          </form>
-
-          {/* Footer */}
-          <div className="mt-8 text-center">
-            <p className="text-secondary-600">
-              Already have an account?{' '}
-              <Link
-                to="/login"
-                className="font-semibold text-accent-600 hover:text-accent-500 transition-colors duration-200 hover:underline"
+            <div>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                Sign in here
-              </Link>
-            </p>
-          </div>
+                {isSubmitting ? (
+                  <div className="flex items-center">
+                    <LoadingSpinner size="sm" className="mr-2" />
+                    Creating Account...
+                  </div>
+                ) : (
+                  'Create Account'
+                )}
+              </button>
+            </div>
+
+            {/* Sign in link */}
+            <div className="text-center">
+              <p className="text-sm text-gray-600">
+                Already have an account?{' '}
+                <Link
+                  to="/login"
+                  className="font-medium text-primary-600 hover:text-primary-500 transition-colors"
+                >
+                  Sign in
+                </Link>
+              </p>
+            </div>
+          </form>
         </div>
       </div>
     </div>

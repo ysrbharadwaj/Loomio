@@ -20,9 +20,11 @@ const Tasks = () => {
   const [createForm, setCreateForm] = useState({
     title: '',
     description: '',
-    assigned_to: '',
+    assigned_to: [],
     due_date: '',
-    priority: 'medium'
+    priority: 'medium',
+    task_type: 'individual',
+    max_assignees: 1
   });
   const [communityMembers, setCommunityMembers] = useState([]);
   const [selectedCommunity, setSelectedCommunity] = useState(null);
@@ -31,6 +33,7 @@ const Tasks = () => {
   const [selectedTask, setSelectedTask] = useState(null);
   const [showSubmissionModal, setShowSubmissionModal] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
+  const [showTaskDetailModal, setShowTaskDetailModal] = useState(false);
   const [submissionForm, setSubmissionForm] = useState({
     submission_link: '',
     submission_notes: ''
@@ -48,9 +51,11 @@ const Tasks = () => {
   }, [user, selectedCommunity]);
 
   useEffect(() => {
+    // Always try to fetch tasks, even without a selected community
+    fetchTasks();
+    
+    // Fetch community members if user is admin
     if (selectedCommunity) {
-      fetchTasks();
-      // Check if user is admin of the selected community
       const userCommunityRole = selectedCommunity.UserCommunity?.role;
       if (userCommunityRole === 'community_admin' || user?.role === 'platform_admin') {
         fetchCommunityMembers();
@@ -63,17 +68,13 @@ const Tasks = () => {
       setIsLoading(true);
       setError('');
       
-      if (!selectedCommunity) {
-        setTasks([]);
-        setIsLoading(false);
-        return;
-      }
-      
       let url = '/tasks';
       const params = new URLSearchParams();
       
-      // Always include community_id
-      params.append('community_id', selectedCommunity.community_id);
+      // Add community filter if available
+      if (selectedCommunity?.community_id) {
+        params.append('community_id', selectedCommunity.community_id);
+      }
       
       if (filter === 'pending') {
         params.append('status', 'pending');
@@ -83,13 +84,18 @@ const Tasks = () => {
         params.append('assigned_to', user.user_id);
       }
       
-      url += `?${params.toString()}`;
+      // Add parameters to URL if any exist
+      const paramString = params.toString();
+      if (paramString) {
+        url += `?${paramString}`;
+      }
       
       const response = await api.get(url);
+      console.log('Fetched tasks:', response.data.tasks); // Debug log
       setTasks(response.data.tasks || []);
     } catch (err) {
       console.error('Failed to fetch tasks:', err);
-      setError('Failed to load tasks');
+      setError(err.response?.data?.message || 'Failed to load tasks. Please check if the server is running.');
     } finally {
       setIsLoading(false);
     }
@@ -135,11 +141,13 @@ const Tasks = () => {
         title: createForm.title,
         description: createForm.description,
         priority: createForm.priority,
-        community_id: selectedCommunity.community_id
+        community_id: selectedCommunity.community_id,
+        task_type: createForm.task_type,
+        max_assignees: createForm.task_type === 'group' ? createForm.max_assignees : 1
       };
 
-      if (createForm.assigned_to) {
-        taskData.assignee_ids = [parseInt(createForm.assigned_to)];
+      if (createForm.assigned_to && createForm.assigned_to.length > 0) {
+        taskData.assignee_ids = createForm.assigned_to.map(id => parseInt(id));
       }
 
       if (createForm.due_date) {
@@ -151,9 +159,11 @@ const Tasks = () => {
       setCreateForm({
         title: '',
         description: '',
-        assigned_to: '',
+        assigned_to: [],
         due_date: '',
-        priority: 'medium'
+        priority: 'medium',
+        task_type: 'individual',
+        max_assignees: 1
       });
       setShowCreateForm(false);
       fetchTasks();
@@ -188,6 +198,13 @@ const Tasks = () => {
     });
   };
 
+  const isDeadlinePassed = (deadlineString) => {
+    if (!deadlineString) return false;
+    const deadline = new Date(deadlineString);
+    const now = new Date();
+    return deadline < now;
+  };
+
   const handleSelfAssign = async (taskId) => {
     try {
       setIsLoading(true);
@@ -197,6 +214,20 @@ const Tasks = () => {
     } catch (err) {
       console.error('Self-assign error:', err);
       setError(err.response?.data?.message || 'Failed to self-assign task');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleUpdateTaskStatus = async (taskId, status) => {
+    try {
+      setIsLoading(true);
+      const response = await api.put(`/tasks/${taskId}/status`, { status });
+      setSuccess(response.data.message);
+      fetchTasks();
+    } catch (err) {
+      console.error('Update task status error:', err);
+      setError(err.response?.data?.message || 'Failed to update task status');
     } finally {
       setIsLoading(false);
     }
@@ -233,6 +264,42 @@ const Tasks = () => {
     } catch (err) {
       console.error('Review task error:', err);
       setError(err.response?.data?.message || 'Failed to review task');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteTask = async (taskId) => {
+    if (!window.confirm('Are you sure you want to delete this task? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const response = await api.delete(`/tasks/${taskId}/delete`);
+      setSuccess(response.data.message || 'Task deleted successfully');
+      fetchTasks();
+    } catch (err) {
+      console.error('Delete task error:', err);
+      setError(err.response?.data?.message || 'Failed to delete task');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRevokeTask = async (taskId) => {
+    if (!window.confirm('Are you sure you want to revoke your assignment from this task?')) {
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const response = await api.delete(`/tasks/${taskId}/revoke`);
+      setSuccess(response.data.message || 'Task assignment revoked successfully');
+      fetchTasks();
+    } catch (err) {
+      console.error('Revoke task error:', err);
+      setError(err.response?.data?.message || 'Failed to revoke task assignment');
     } finally {
       setIsLoading(false);
     }
@@ -440,130 +507,79 @@ const Tasks = () => {
                 )}
               </div>
             ) : (
-              <div className="divide-y divide-gray-200">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {tasks.map((task) => {
                   const userAssignment = task.assignees?.find(a => a.user_id === user.user_id);
                   const isAssignedToUser = !!userAssignment;
-                  const canSelfAssign = !isAssignedToUser && task.status === 'not_started';
-                  const canSubmit = isAssignedToUser && ['accepted', 'in_progress'].includes(userAssignment.TaskAssignment?.status);
-                  const canReview = task.status === 'submitted' && selectedCommunity?.UserCommunity?.role === 'community_admin';
+                  const currentAssigneeCount = task.assignees?.length || 0;
+                  const isAdmin = selectedCommunity?.UserCommunity?.role === 'community_admin' || user?.role === 'platform_admin';
                   
                   return (
-                    <div key={task.task_id} className="p-6 hover:bg-gray-50 transition-colors border-l-4 border-l-transparent hover:border-l-primary-500">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-start space-x-4 flex-1">
-                          <div className="mt-1">
-                            {getStatusIcon(task.status)}
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-3 mb-2">
-                              <h3 className="text-lg font-semibold text-gray-900">
-                                {task.title}
-                              </h3>
-                              <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(task.priority)}`}>
-                                {task.priority} priority
-                              </span>
-                              <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(task.status)}`}>
-                                {task.status.replace('_', ' ')}
-                              </span>
-                            </div>
-                            
-                            {task.description && (
-                              <p className="text-gray-700 mb-3">{task.description}</p>
-                            )}
-
-                            {/* Assignees */}
-                            {task.assignees && task.assignees.length > 0 && (
-                              <div className="mb-3">
-                                <div className="flex flex-wrap gap-2">
-                                  {task.assignees.map((assignee) => (
-                                    <span key={assignee.user_id} className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                                      <UserIcon className="w-3 h-3 mr-1" />
-                                      {assignee.full_name}
-                                      {assignee.TaskAssignment?.status && (
-                                        <span className="ml-1 text-blue-600">({assignee.TaskAssignment.status})</span>
-                                      )}
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Submission info */}
-                            {task.status === 'submitted' && (
-                              <div className="mb-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                                <p className="text-sm text-yellow-800 font-medium">Task submitted for review</p>
-                                {task.submission_notes && (
-                                  <p className="text-sm text-yellow-700 mt-1">{task.submission_notes}</p>
-                                )}
-                                {task.submission_link && (
-                                  <a href={task.submission_link} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline">
-                                    View submission →
-                                  </a>
-                                )}
-                              </div>
-                            )}
-
-                            {/* Review info */}
-                            {['completed', 'rejected'].includes(task.status) && task.review_notes && (
-                              <div className={`mb-3 p-3 border rounded-lg ${task.status === 'completed' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
-                                <p className={`text-sm font-medium ${task.status === 'completed' ? 'text-green-800' : 'text-red-800'}`}>
-                                  Admin Review: {task.status === 'completed' ? 'Approved' : 'Rejected'}
-                                </p>
-                                <p className={`text-sm mt-1 ${task.status === 'completed' ? 'text-green-700' : 'text-red-700'}`}>
-                                  {task.review_notes}
-                                </p>
-                              </div>
-                            )}
-                            
-                            <div className="flex items-center space-x-6 text-sm text-gray-500">
-                              <div className="flex items-center">
-                                <CalendarIcon className="w-4 h-4 mr-1" />
-                                <span>Due: {formatDate(task.deadline)}</span>
-                              </div>
-                              <span>Created {formatDate(task.created_at)}</span>
-                              {task.completed_at && (
-                                <span>Completed {formatDate(task.completed_at)}</span>
-                              )}
-                            </div>
-                          </div>
+                    <div 
+                      key={task.task_id} 
+                      className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all cursor-pointer"
+                      onClick={() => {
+                        setSelectedTask(task);
+                        setShowTaskDetailModal(true);
+                      }}
+                    >
+                      {/* Header with status icon and badges */}
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center space-x-2">
+                          {getStatusIcon(task.status)}
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(task.status)}`}>
+                            {task.status.replace('_', ' ')}
+                          </span>
                         </div>
-                        
-                        {/* Task Actions */}
-                        <div className="flex items-center space-x-2 ml-4">
-                          {canSelfAssign && (
-                            <button
-                              onClick={() => handleSelfAssign(task.task_id)}
-                              className="px-3 py-1 text-sm bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg font-medium transition-colors"
-                            >
-                              Self Assign
-                            </button>
-                          )}
-                          
-                          {canSubmit && (
-                            <button
-                              onClick={() => {
-                                setSelectedTask(task);
-                                setShowSubmissionModal(true);
-                              }}
-                              className="px-3 py-1 text-sm bg-green-100 text-green-700 hover:bg-green-200 rounded-lg font-medium transition-colors"
-                            >
-                              Submit Task
-                            </button>
-                          )}
-                          
-                          {canReview && (
-                            <button
-                              onClick={() => {
-                                setSelectedTask(task);
-                                setShowReviewModal(true);
-                              }}
-                              className="px-3 py-1 text-sm bg-purple-100 text-purple-700 hover:bg-purple-200 rounded-lg font-medium transition-colors"
-                            >
-                              Review
-                            </button>
-                          )}
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${task.task_type === 'group' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'}`}>
+                          {task.task_type === 'group' ? 'Group' : 'Individual'}
+                        </span>
+                      </div>
+
+                      {/* Title */}
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+                        {task.title}
+                      </h3>
+
+                      {/* Priority and assignee count */}
+                      <div className="flex items-center justify-between mb-3">
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(task.priority)}`}>
+                          {task.priority}
+                        </span>
+                        <div className="flex items-center text-sm text-gray-600">
+                          <UserIcon className="w-4 h-4 mr-1" />
+                          {task.task_type === 'group' 
+                            ? `${currentAssigneeCount}/${task.max_assignees || 1}`
+                            : currentAssigneeCount > 0 ? '1' : '0'}
                         </div>
+                      </div>
+
+                      {/* Deadline */}
+                      <div className="flex items-center text-sm text-gray-500 mb-3">
+                        <CalendarIcon className="w-4 h-4 mr-1" />
+                        <span className={isDeadlinePassed(task.deadline) ? 'text-red-600 font-medium' : ''}>
+                          {formatDate(task.deadline)}
+                        </span>
+                      </div>
+
+                      {/* Action buttons */}
+                      <div className="flex items-center space-x-2" onClick={(e) => e.stopPropagation()}>
+                        {isAssignedToUser && !['completed', 'submitted'].includes(task.status) && (
+                          <button
+                            onClick={() => handleRevokeTask(task.task_id)}
+                            className="flex-1 px-3 py-1 text-sm bg-red-100 text-red-700 hover:bg-red-200 rounded-lg font-medium transition-colors"
+                          >
+                            Revoke
+                          </button>
+                        )}
+                        {isAdmin && (
+                          <button
+                            onClick={() => handleDeleteTask(task.task_id)}
+                            className="flex-1 px-3 py-1 text-sm bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-lg font-medium transition-colors"
+                          >
+                            Delete
+                          </button>
+                        )}
                       </div>
                     </div>
                   );
@@ -606,24 +622,115 @@ const Tasks = () => {
                   />
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Assign To
+                      Task Type
                     </label>
                     <select
-                      value={createForm.assigned_to}
-                      onChange={(e) => setCreateForm({ ...createForm, assigned_to: e.target.value })}
+                      value={createForm.task_type}
+                      onChange={(e) => setCreateForm({ 
+                        ...createForm, 
+                        task_type: e.target.value,
+                        max_assignees: e.target.value === 'individual' ? 1 : createForm.max_assignees,
+                        assigned_to: e.target.value === 'individual' ? (createForm.assigned_to.slice(0, 1)) : createForm.assigned_to
+                      })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                     >
-                      <option value="">Unassigned</option>
-                      {communityMembers.map((member) => (
-                        <option key={member.user_id} value={member.user_id}>
-                          {member.full_name}
-                        </option>
-                      ))}
+                      <option value="individual">Individual Task</option>
+                      <option value="group">Group Task</option>
                     </select>
                   </div>
+
+                  {createForm.task_type === 'group' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Max Assignees
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="50"
+                        value={createForm.max_assignees}
+                        onChange={(e) => setCreateForm({ ...createForm, max_assignees: parseInt(e.target.value) || 1 })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Assign To {createForm.task_type === 'group' ? '(Multiple Selection)' : ''}
+                  </label>
+                  <div className="border border-gray-300 rounded-lg p-2 max-h-40 overflow-y-auto">
+                    <div className="mb-2">
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={createForm.assigned_to.length === 0}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setCreateForm({ ...createForm, assigned_to: [] });
+                            }
+                          }}
+                          className="mr-2"
+                        />
+                        <span className="text-sm text-gray-600">Leave Unassigned (Allow Self-Assignment)</span>
+                      </label>
+                    </div>
+                    {communityMembers.map((member) => (
+                      <div key={member.user_id} className="mb-1">
+                        <label className="flex items-center">
+                          <input
+                            type={createForm.task_type === 'individual' ? 'radio' : 'checkbox'}
+                            name={createForm.task_type === 'individual' ? 'assigned_member' : undefined}
+                            checked={createForm.assigned_to.includes(member.user_id.toString())}
+                            onChange={(e) => {
+                              if (createForm.task_type === 'individual') {
+                                setCreateForm({ 
+                                  ...createForm, 
+                                  assigned_to: e.target.checked ? [member.user_id.toString()] : []
+                                });
+                              } else {
+                                const currentAssignees = [...createForm.assigned_to];
+                                const memberIdStr = member.user_id.toString();
+                                if (e.target.checked) {
+                                  if (currentAssignees.length < createForm.max_assignees) {
+                                    currentAssignees.push(memberIdStr);
+                                  }
+                                } else {
+                                  const index = currentAssignees.indexOf(memberIdStr);
+                                  if (index > -1) {
+                                    currentAssignees.splice(index, 1);
+                                  }
+                                }
+                                setCreateForm({ ...createForm, assigned_to: currentAssignees });
+                              }
+                            }}
+                            className="mr-2"
+                            disabled={createForm.task_type === 'group' && 
+                                     !createForm.assigned_to.includes(member.user_id.toString()) && 
+                                     createForm.assigned_to.length >= createForm.max_assignees}
+                          />
+                          <span className="text-sm">{member.full_name}</span>
+                          {createForm.task_type === 'group' && 
+                           !createForm.assigned_to.includes(member.user_id.toString()) && 
+                           createForm.assigned_to.length >= createForm.max_assignees && (
+                            <span className="text-xs text-gray-400 ml-2">(Max reached)</span>
+                          )}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                  {createForm.task_type === 'group' && createForm.assigned_to.length > 0 && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      {createForm.assigned_to.length} of {createForm.max_assignees} assignees selected
+                    </p>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -679,6 +786,14 @@ const Tasks = () => {
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-xl shadow-xl border p-6 w-full max-w-2xl">
               <h3 className="text-xl font-bold text-gray-900 mb-4">Submit Task: {selectedTask.title}</h3>
+              
+              {isDeadlinePassed(selectedTask.deadline) && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-sm text-red-800 font-medium">
+                    ⚠️ This task deadline has passed ({formatDate(selectedTask.deadline)}). Submission may be rejected.
+                  </p>
+                </div>
+              )}
               
               <form onSubmit={handleSubmitTask} className="space-y-4">
                 <div>
@@ -825,6 +940,296 @@ const Tasks = () => {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* Task Detail Modal */}
+        {showTaskDetailModal && selectedTask && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-xl shadow-xl border p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">{selectedTask.title}</h2>
+                <button
+                  onClick={() => {
+                    setShowTaskDetailModal(false);
+                    setSelectedTask(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Left Column - Task Details */}
+                <div className="space-y-6">
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Task Information</h3>
+                    
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-gray-600">Status:</span>
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(selectedTask.status)}`}>
+                          {selectedTask.status.replace('_', ' ')}
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-gray-600">Priority:</span>
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(selectedTask.priority)}`}>
+                          {selectedTask.priority} priority
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-gray-600">Task Type:</span>
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${selectedTask.task_type === 'group' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'}`}>
+                          {selectedTask.task_type === 'group' ? `Group (max: ${selectedTask.max_assignees || 1})` : 'Individual'}
+                        </span>
+                      </div>
+                      
+                      {selectedTask.deadline && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-gray-600">Deadline:</span>
+                          <span className={isDeadlinePassed(selectedTask.deadline) ? 'text-red-600 font-medium' : 'text-gray-900'}>
+                            {formatDate(selectedTask.deadline)}
+                            {isDeadlinePassed(selectedTask.deadline) && ' (Overdue)'}
+                          </span>
+                        </div>
+                      )}
+                      
+                      {selectedTask.estimated_hours && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-gray-600">Estimated Hours:</span>
+                          <span className="text-gray-900">{selectedTask.estimated_hours}h</span>
+                        </div>
+                      )}
+                      
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-gray-600">Created:</span>
+                        <span className="text-gray-900">{formatDate(selectedTask.created_at)}</span>
+                      </div>
+                      
+                      {selectedTask.creator && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-gray-600">Created by:</span>
+                          <span className="text-gray-900">{selectedTask.creator.full_name}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {selectedTask.description && (
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-3">Description</h3>
+                      <p className="text-gray-700 whitespace-pre-wrap">{selectedTask.description}</p>
+                    </div>
+                  )}
+
+                  {selectedTask.tags && selectedTask.tags.length > 0 && (
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-3">Tags</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedTask.tags.map((tag, index) => (
+                          <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Right Column - Assignment & Activity */}
+                <div className="space-y-6">
+                  {/* Assignees */}
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Assignees</h3>
+                    {selectedTask.assignees && selectedTask.assignees.length > 0 ? (
+                      <div className="space-y-2">
+                        {selectedTask.assignees.map((assignee) => (
+                          <div key={assignee.user_id} className="flex items-center justify-between p-2 bg-white rounded border">
+                            <div className="flex items-center space-x-2">
+                              <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                                <span className="text-sm font-medium text-primary-600">
+                                  {assignee.full_name.charAt(0)}
+                                </span>
+                              </div>
+                              <span className="font-medium text-gray-900">{assignee.full_name}</span>
+                            </div>
+                            {assignee.TaskAssignment?.status && (
+                              <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(assignee.TaskAssignment.status)}`}>
+                                {assignee.TaskAssignment.status}
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-gray-500 text-sm">No assignees</p>
+                    )}
+                  </div>
+
+                  {/* Submission Details */}
+                  {selectedTask.status === 'submitted' && (
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-3">Submission Details</h3>
+                      {selectedTask.submitted_at && (
+                        <div className="mb-2">
+                          <span className="text-sm font-medium text-gray-600">Submitted on: </span>
+                          <span className="text-gray-900">{formatDate(selectedTask.submitted_at)}</span>
+                        </div>
+                      )}
+                      {selectedTask.submission_link && (
+                        <div className="mb-2">
+                          <span className="text-sm font-medium text-gray-600">Link: </span>
+                          <a href={selectedTask.submission_link} target="_blank" rel="noopener noreferrer" 
+                             className="text-primary-600 hover:text-primary-800 underline">
+                            {selectedTask.submission_link}
+                          </a>
+                        </div>
+                      )}
+                      {selectedTask.submission_notes && (
+                        <div>
+                          <span className="text-sm font-medium text-gray-600">Notes: </span>
+                          <p className="text-gray-700 mt-1 whitespace-pre-wrap">{selectedTask.submission_notes}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Review Details */}
+                  {['completed', 'rejected'].includes(selectedTask.status) && selectedTask.review_notes && (
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-3">Review</h3>
+                      <div className={`p-3 border rounded-lg ${selectedTask.status === 'completed' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+                        <p className={`text-sm font-medium ${selectedTask.status === 'completed' ? 'text-green-800' : 'text-red-800'}`}>
+                          {selectedTask.status === 'completed' ? 'Approved' : 'Rejected'}
+                        </p>
+                        {selectedTask.reviewed_at && (
+                          <p className="text-sm text-gray-600 mt-1">
+                            Reviewed on {formatDate(selectedTask.reviewed_at)}
+                          </p>
+                        )}
+                        <p className={`text-sm mt-2 ${selectedTask.status === 'completed' ? 'text-green-700' : 'text-red-700'}`}>
+                          {selectedTask.review_notes}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Actions</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {(() => {
+                        const userAssignment = selectedTask.assignees?.find(a => a.user_id === user.user_id);
+                        const isAssignedToUser = !!userAssignment;
+                        const currentAssigneeCount = selectedTask.assignees?.length || 0;
+                        const canSelfAssign = !isAssignedToUser && 
+                          (selectedTask.status === 'not_started' || (selectedTask.status === 'in_progress' && selectedTask.task_type === 'group')) &&
+                          (selectedTask.task_type === 'individual' ? currentAssigneeCount === 0 : currentAssigneeCount < (selectedTask.max_assignees || 1));
+                        const canAccept = isAssignedToUser && userAssignment.TaskAssignment?.status === 'assigned';
+                        const canStartWorking = isAssignedToUser && userAssignment.TaskAssignment?.status === 'accepted';
+                        const canSubmit = isAssignedToUser && ['accepted', 'in_progress'].includes(userAssignment.TaskAssignment?.status) && !isDeadlinePassed(selectedTask.deadline);
+                        const canReview = selectedTask.status === 'submitted' && selectedCommunity?.UserCommunity?.role === 'community_admin';
+                        const isAdmin = selectedCommunity?.UserCommunity?.role === 'community_admin' || user?.role === 'platform_admin';
+
+                        return (
+                          <>
+                            {canSelfAssign && (
+                              <button
+                                onClick={() => {
+                                  handleSelfAssign(selectedTask.task_id);
+                                  setShowTaskDetailModal(false);
+                                }}
+                                className="px-3 py-2 text-sm bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg font-medium transition-colors"
+                              >
+                                Self Assign
+                              </button>
+                            )}
+                            
+                            {canAccept && (
+                              <button
+                                onClick={() => {
+                                  handleUpdateTaskStatus(selectedTask.task_id, 'accepted');
+                                  setShowTaskDetailModal(false);
+                                }}
+                                className="px-3 py-2 text-sm bg-yellow-100 text-yellow-700 hover:bg-yellow-200 rounded-lg font-medium transition-colors"
+                              >
+                                Accept Task
+                              </button>
+                            )}
+                            
+                            {canStartWorking && (
+                              <button
+                                onClick={() => {
+                                  handleUpdateTaskStatus(selectedTask.task_id, 'in_progress');
+                                  setShowTaskDetailModal(false);
+                                }}
+                                className="px-3 py-2 text-sm bg-orange-100 text-orange-700 hover:bg-orange-200 rounded-lg font-medium transition-colors"
+                              >
+                                Start Working
+                              </button>
+                            )}
+                            
+                            {canSubmit && (
+                              <button
+                                onClick={() => {
+                                  setShowTaskDetailModal(false);
+                                  setShowSubmissionModal(true);
+                                }}
+                                className="px-3 py-2 text-sm bg-green-100 text-green-700 hover:bg-green-200 rounded-lg font-medium transition-colors"
+                              >
+                                Submit Task
+                              </button>
+                            )}
+                            
+                            {canReview && (
+                              <button
+                                onClick={() => {
+                                  setShowTaskDetailModal(false);
+                                  setShowReviewModal(true);
+                                }}
+                                className="px-3 py-2 text-sm bg-purple-100 text-purple-700 hover:bg-purple-200 rounded-lg font-medium transition-colors"
+                              >
+                                Review Task
+                              </button>
+                            )}
+
+                            {isAssignedToUser && !['completed', 'submitted'].includes(selectedTask.status) && (
+                              <button
+                                onClick={() => {
+                                  handleRevokeTask(selectedTask.task_id);
+                                  setShowTaskDetailModal(false);
+                                }}
+                                className="px-3 py-2 text-sm bg-red-100 text-red-700 hover:bg-red-200 rounded-lg font-medium transition-colors"
+                              >
+                                Revoke Assignment
+                              </button>
+                            )}
+
+                            {isAdmin && (
+                              <button
+                                onClick={() => {
+                                  handleDeleteTask(selectedTask.task_id);
+                                  setShowTaskDetailModal(false);
+                                }}
+                                className="px-3 py-2 text-sm bg-gray-700 text-white hover:bg-gray-800 rounded-lg font-medium transition-colors"
+                              >
+                                Delete Task
+                              </button>
+                            )}
+                          </>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}

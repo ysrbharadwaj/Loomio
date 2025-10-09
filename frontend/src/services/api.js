@@ -107,4 +107,11 @@ export const notificationAPI = {
   markAllAsRead: () => api.put('/notifications/read-all'),
 };
 
+// Analytics API
+export const analyticsAPI = {
+  getPlatformAnalytics: () => api.get('/analytics/platform'),
+  getCommunityAnalytics: (communityId) => api.get(`/analytics/community/${communityId}`),
+  getMyCommunityAnalytics: () => api.get('/analytics/my-community'),
+};
+
 export default api;

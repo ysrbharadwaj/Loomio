@@ -11,7 +11,9 @@ const getAllTasks = async (req, res) => {
       priority = '', 
       community_id = '',
       assigned_to = '',
-      search = ''
+      search = '',
+      start_date = '',
+      end_date = ''
     } = req.query;
     
     const offset = (page - 1) * limit;
@@ -50,9 +52,21 @@ const getAllTasks = async (req, res) => {
 
     if (search) {
       whereClause[Op.or] = [
-        { title: { [Op.iLike]: `%${search}%` } },
-        { description: { [Op.iLike]: `%${search}%` } }
+        { title: { [Op.like]: `%${search}%` } },
+        { description: { [Op.like]: `%${search}%` } }
       ];
+    }
+
+    // Add date filtering
+    if (start_date || end_date) {
+      const dateFilter = {};
+      if (start_date) {
+        dateFilter[Op.gte] = new Date(start_date);
+      }
+      if (end_date) {
+        dateFilter[Op.lte] = new Date(end_date);
+      }
+      whereClause.deadline = dateFilter;
     }
 
     const tasks = await Task.findAndCountAll({
@@ -176,7 +190,9 @@ const createTask = async (req, res) => {
       estimated_hours,
       tags = [],
       assignee_ids = [],
-      community_id
+      community_id,
+      task_type = 'individual',
+      max_assignees = 1
     } = req.body;
 
     const assigned_by = req.user.user_id;
@@ -211,7 +227,9 @@ const createTask = async (req, res) => {
       priority,
       estimated_hours,
       tags,
-      community_id
+      community_id,
+      task_type,
+      max_assignees: task_type === 'group' ? max_assignees : 1
     });
 
     // Assign users if specified
@@ -582,8 +600,40 @@ const selfAssignTask = async (req, res) => {
       return res.status(404).json({ message: 'Task not found' });
     }
 
-    if (task.status !== 'not_started') {
+    if (task.status !== 'not_started' && task.status !== 'in_progress') {
       return res.status(400).json({ message: 'Task is not available for self-assignment' });
+    }
+
+    // Check if user is already assigned
+    const existingAssignment = await TaskAssignment.findOne({
+      where: { 
+        task_id: parseInt(id),
+        user_id: req.user.user_id
+      }
+    });
+
+    if (existingAssignment) {
+      return res.status(400).json({ message: 'You are already assigned to this task' });
+    }
+
+    // For group tasks, check if max assignees limit is reached
+    if (task.task_type === 'group') {
+      const currentAssigneeCount = await TaskAssignment.count({
+        where: { task_id: parseInt(id) }
+      });
+
+      if (currentAssigneeCount >= task.max_assignees) {
+        return res.status(400).json({ message: 'Maximum number of assignees reached for this task' });
+      }
+    } else {
+      // For individual tasks, check if already assigned to someone
+      const assigneeCount = await TaskAssignment.count({
+        where: { task_id: parseInt(id) }
+      });
+
+      if (assigneeCount > 0) {
+        return res.status(400).json({ message: 'This individual task is already assigned to someone' });
+      }
     }
 
     // Verify user is member of the community
@@ -608,8 +658,10 @@ const selfAssignTask = async (req, res) => {
       accepted_at: new Date()
     });
 
-    // Update task status
-    await task.update({ status: 'in_progress' });
+    // Update task status only if it's the first assignment
+    if (task.status === 'not_started') {
+      await task.update({ status: 'in_progress' });
+    }
 
     res.json({
       message: 'Successfully self-assigned to task',
@@ -636,7 +688,7 @@ const submitTask = async (req, res) => {
         task_id: parseInt(id),
         user_id: req.user.user_id
       },
-      include: [{ model: Task }]
+      include: [{ model: Task, as: 'task' }]
     });
 
     if (!assignment) {
@@ -647,8 +699,13 @@ const submitTask = async (req, res) => {
       return res.status(400).json({ message: 'Task cannot be submitted in current status' });
     }
 
+    // Check if task deadline has passed
+    if (assignment.task.deadline && new Date() > new Date(assignment.task.deadline)) {
+      return res.status(400).json({ message: 'Task cannot be submitted after the deadline has passed' });
+    }
+
     // Update task with submission details
-    await assignment.Task.update({
+    await assignment.task.update({
       status: 'submitted',
       submission_link: submission_link || null,
       submission_notes: submission_notes || null,
@@ -729,6 +786,37 @@ const reviewTaskSubmission = async (req, res) => {
       { where: { task_id: parseInt(id) } }
     );
 
+    // Award points if task is approved
+    if (action === 'approve') {
+      // Get all users assigned to this task
+      const assignments = await TaskAssignment.findAll({
+        where: { task_id: parseInt(id) },
+        include: [{ model: User, as: 'user' }]
+      });
+
+      // Award points to each assigned user
+      const pointsToAward = 10; // Standard points for task completion
+      const { Contribution } = require('../models');
+
+      for (const assignment of assignments) {
+        // Update user's total points
+        await User.increment('points', {
+          by: pointsToAward,
+          where: { user_id: assignment.user_id }
+        });
+
+        // Create contribution record
+        await Contribution.create({
+          user_id: assignment.user_id,
+          task_id: parseInt(id),
+          community_id: task.community_id,
+          type: 'task_completion',
+          points: pointsToAward,
+          description: `Completed task: ${task.title}`
+        });
+      }
+    }
+
     res.json({
       message: `Task ${action}d successfully`,
       task: await Task.findByPk(id, {
@@ -745,6 +833,88 @@ const reviewTaskSubmission = async (req, res) => {
   }
 };
 
+// Delete task (admin only)
+const deleteTaskById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const task = await Task.findByPk(id, {
+      include: [{ model: Community, as: 'community' }]
+    });
+
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' });
+    }
+
+    // Check if user is community admin or platform admin
+    if (req.user.role !== 'platform_admin') {
+      const { UserCommunity } = require('../models');
+      const userCommunity = await UserCommunity.findOne({
+        where: {
+          user_id: req.user.user_id,
+          community_id: task.community_id
+        }
+      });
+
+      if (!userCommunity || userCommunity.role !== 'community_admin') {
+        return res.status(403).json({ message: 'Only community administrators can delete tasks' });
+      }
+    }
+
+    await task.destroy();
+
+    res.json({ message: 'Task deleted successfully' });
+  } catch (error) {
+    console.error('Delete task error:', error);
+    res.status(500).json({ message: 'Failed to delete task', error: error.message });
+  }
+};
+
+// Revoke task assignment (user can remove themselves from a task)
+const revokeTaskAssignment = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const task = await Task.findByPk(id);
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' });
+    }
+
+    const assignment = await TaskAssignment.findOne({
+      where: {
+        task_id: parseInt(id),
+        user_id: req.user.user_id
+      }
+    });
+
+    if (!assignment) {
+      return res.status(404).json({ message: 'You are not assigned to this task' });
+    }
+
+    // Can't revoke if already submitted or completed
+    if (['submitted', 'completed'].includes(assignment.status)) {
+      return res.status(400).json({ message: 'Cannot revoke assignment for submitted or completed tasks' });
+    }
+
+    await assignment.destroy();
+
+    // Check if there are any remaining assignments
+    const remainingAssignments = await TaskAssignment.count({
+      where: { task_id: parseInt(id) }
+    });
+
+    // If no assignments left, set task status back to not_started
+    if (remainingAssignments === 0) {
+      await task.update({ status: 'not_started' });
+    }
+
+    res.json({ message: 'Task assignment revoked successfully' });
+  } catch (error) {
+    console.error('Revoke task assignment error:', error);
+    res.status(500).json({ message: 'Failed to revoke task assignment', error: error.message });
+  }
+};
+
 module.exports = {
   getAllTasks,
   getTaskById,
@@ -757,5 +927,7 @@ module.exports = {
   assignTaskToUsers,
   selfAssignTask,
   submitTask,
-  reviewTaskSubmission
+  reviewTaskSubmission,
+  deleteTaskById,
+  revokeTaskAssignment
 };

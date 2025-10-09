@@ -8,7 +8,8 @@ import {
   CalendarDaysIcon,
   ClipboardDocumentListIcon,
   SparklesIcon,
-  ArrowRightIcon
+  ArrowRightIcon,
+  TrashIcon
 } from '@heroicons/react/24/outline';
 import api from '../services/api';
 
@@ -119,6 +120,36 @@ const Communities = () => {
     }
   };
 
+  const handleDeleteCommunity = async (communityId, communityName) => {
+    if (!confirm(`Are you sure you want to delete the community "${communityName}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      await api.delete(`/communities/${communityId}`);
+      
+      setSuccess(`Community "${communityName}" has been deleted successfully.`);
+      
+      // Refresh communities list
+      await fetchCommunities();
+      
+      // Update user communities if they were a member
+      if (user?.communities) {
+        const updatedCommunities = user.communities.filter(c => c.community_id !== communityId);
+        updateUser({ ...user, communities: updatedCommunities });
+      }
+    } catch (err) {
+      console.error('Delete community error:', err);
+      setError(err.response?.data?.message || 'Failed to delete community. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       
@@ -144,7 +175,7 @@ const Communities = () => {
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4">
-          {user?.role === 'platform_admin' && (
+          {(user?.role === 'platform_admin' || user?.role === 'community_admin') && (
             <button
               onClick={() => setShowCreateForm(true)}
               className="flex items-center justify-center px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg transition-colors duration-200 shadow-sm"
@@ -205,8 +236,20 @@ const Communities = () => {
                 </div>
                 <p className="text-sm text-gray-600 mb-3">{community.description || 'No description'}</p>
                 <div className="flex items-center justify-between text-xs text-gray-500">
-                  <span className="capitalize">{community.UserCommunity?.role?.replace('_', ' ')}</span>
-                  <span>Joined {new Date(community.UserCommunity?.joined_at).toLocaleDateString()}</span>
+                  <div className="flex flex-col">
+                    <span className="capitalize">{community.UserCommunity?.role?.replace('_', ' ')}</span>
+                    <span>Joined {new Date(community.UserCommunity?.joined_at).toLocaleDateString()}</span>
+                  </div>
+                  {(user?.role === 'platform_admin' || 
+                    (community.created_by === user?.user_id)) && (
+                    <button
+                      onClick={() => handleDeleteCommunity(community.community_id, community.name)}
+                      className="text-red-500 hover:text-red-700 p-1 rounded transition-colors"
+                      title="Delete Community"
+                    >
+                      <TrashIcon className="w-3 h-3" />
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
@@ -227,13 +270,20 @@ const Communities = () => {
           <div className="text-center py-12">
             <UserGroupIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">No communities available</h3>
-            <p className="text-gray-600 mb-6">Be the first to create a community or get a code to join one.</p>
-            <button
-              onClick={() => setShowCreateForm(true)}
-              className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors duration-200"
-            >
-              Create First Community
-            </button>
+            <p className="text-gray-600 mb-6">
+              {(user?.role === 'platform_admin' || user?.role === 'community_admin') 
+                ? 'Be the first to create a community or get a code to join one.'
+                : 'Ask an admin to create a community or get a code to join an existing one.'
+              }
+            </p>
+            {(user?.role === 'platform_admin' || user?.role === 'community_admin') && (
+              <button
+                onClick={() => setShowCreateForm(true)}
+                className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors duration-200"
+              >
+                Create First Community
+              </button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -271,9 +321,21 @@ const Communities = () => {
                     <UsersIcon className="w-4 h-4 mr-1" />
                     <span>{community.memberCount || 0} members</span>
                   </div>
-                  <button className="text-primary-600 hover:text-primary-700 text-sm font-medium">
-                    View Details
-                  </button>
+                  <div className="flex items-center space-x-2">
+                    <button className="text-primary-600 hover:text-primary-700 text-sm font-medium">
+                      View Details
+                    </button>
+                    {(user?.role === 'platform_admin' || 
+                      (community.creator && community.creator.user_id === user?.user_id)) && (
+                      <button
+                        onClick={() => handleDeleteCommunity(community.community_id, community.name)}
+                        className="text-red-500 hover:text-red-700 p-1 rounded transition-colors"
+                        title="Delete Community"
+                      >
+                        <TrashIcon className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}

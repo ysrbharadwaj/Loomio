@@ -94,9 +94,9 @@ const getCommunityById = async (req, res) => {
 // Create new community
 const createCommunity = async (req, res) => {
   try {
-    // Only platform admins can create communities
-    if (req.user.role !== 'platform_admin') {
-      return res.status(403).json({ message: 'Only platform administrators can create communities' });
+    // Only platform admins and community admins can create communities
+    if (req.user.role !== 'platform_admin' && req.user.role !== 'community_admin') {
+      return res.status(403).json({ message: 'Only administrators can create communities' });
     }
 
     const { name, description, settings } = req.body;

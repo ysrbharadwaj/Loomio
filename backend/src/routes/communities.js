@@ -28,8 +28,8 @@ router.get('/', authenticateToken, validatePagination, getAllCommunities);
 // Get community by ID
 router.get('/:id', authenticateToken, validateId, getCommunityById);
 
-// Create community (any authenticated user)
-router.post('/', authenticateToken, validateCommunity, createCommunity);
+// Create community (admins only)
+router.post('/', authenticateToken, requireAdmin, validateCommunity, createCommunity);
 
 // Update community (creator or platform admin only)
 router.put('/:id', authenticateToken, validateId, validateCommunity, updateCommunity);
