@@ -22,19 +22,15 @@ echo.
 :: =====================================================
 :: STEP 1: Check MySQL Service
 :: =====================================================
-echo [1/5] Checking MySQL Database Service...
+echo [1/5] Checking MySQL Database...
+:: Try to check MySQL service (may not exist if using XAMPP/portable MySQL)
 sc query mysql >nul 2>&1
 if !errorlevel! neq 0 (
-    echo.
-    echo ❌ ERROR: MySQL service not found or not running!
-    echo.
-    echo Please ensure MySQL is installed and running.
-    echo You can start it with: net start mysql
-    echo.
-    pause
-    exit /b 1
+    echo ℹ️  MySQL service not found (may be using XAMPP or portable MySQL)
+    echo    Attempting direct connection test...
+) else (
+    echo ✅ MySQL service is running
 )
-echo ✅ MySQL service is running
 
 :: =====================================================
 :: STEP 2: Test Database Connection
