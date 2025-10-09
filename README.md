@@ -107,12 +107,26 @@ Loomio/
 
 5. **Start the application**
    
-   Option 1 - Use the quick start script (Windows):
+   **Option 1 - Complete Startup (Recommended for first time):**
    ```bash
-   quick-start.bat
+   start.bat
    ```
+   This script will:
+   - ✅ Check if MySQL is running
+   - ✅ Verify database connection
+   - ✅ Check environment configuration
+   - ✅ Install dependencies if needed
+   - ✅ Start backend server
+   - ✅ Start frontend server
+   - ✅ Open application in browser
    
-   Option 2 - Manual start:
+   **Option 2 - Quick Start (when already configured):**
+   ```bash
+   start-quick.bat
+   ```
+   Starts both servers without checks (faster for development)
+   
+   **Option 3 - Manual start:**
    ```bash
    # Terminal 1 - Backend
    cd backend
@@ -122,6 +136,12 @@ Loomio/
    cd frontend
    npm run dev
    ```
+
+   **To stop the application:**
+   ```bash
+   stop.bat
+   ```
+   Or close the Backend and Frontend terminal windows
 
    - Backend API: `http://localhost:5000`
    - Frontend: `http://localhost:5173` (or the port shown in terminal)
