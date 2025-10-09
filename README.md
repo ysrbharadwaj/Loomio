@@ -70,7 +70,63 @@ Loomio/
 - MySQL (v8.0 or higher)
 - npm or yarn
 
-### Backend Setup
+### Quick Setup
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/jvkousthub/Loomio.git
+   cd Loomio
+   ```
+
+2. **Environment Configuration**
+   ```bash
+   copy .env.example .env
+   ```
+   
+   Update the **single** `.env` file in the root directory with your credentials:
+   ```env
+   DB_HOST=localhost
+   DB_PORT=3306
+   DB_NAME=loomio_db
+   DB_USER=root
+   DB_PASSWORD=your_password
+   JWT_SECRET=your_super_secret_jwt_key_here
+   PORT=5000
+   VITE_API_URL=http://localhost:5000/api
+   ```
+
+3. **Install all dependencies**
+   ```bash
+   npm install
+   cd backend && npm install
+   cd ../frontend && npm install
+   cd ..
+   ```
+
+4. **Database Setup** (see Database Setup section below)
+
+5. **Start the application**
+   
+   Option 1 - Use the quick start script (Windows):
+   ```bash
+   quick-start.bat
+   ```
+   
+   Option 2 - Manual start:
+   ```bash
+   # Terminal 1 - Backend
+   cd backend
+   npm start
+   
+   # Terminal 2 - Frontend
+   cd frontend
+   npm run dev
+   ```
+
+   - Backend API: `http://localhost:5000`
+   - Frontend: `http://localhost:5173` (or the port shown in terminal)
+
+### Backend Setup (Manual)
 
 1. **Navigate to backend directory**
    ```bash

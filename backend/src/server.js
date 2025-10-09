@@ -2,7 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../../.env') });
 
 const sequelize = require('./config/database');
 
@@ -34,6 +35,7 @@ app.use('/api/communities', require('./routes/communities'));
 app.use('/api/tasks', require('./routes/tasks'));
 app.use('/api/events', require('./routes/events'));
 app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/analytics', require('./routes/analytics'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
