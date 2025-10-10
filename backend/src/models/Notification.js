@@ -31,7 +31,25 @@ const Notification = sequelize.define('Notification', {
     }
   },
   type: {
-    type: DataTypes.ENUM('task_assigned', 'task_completed', 'deadline_reminder', 'leave_approved', 'leave_rejected', 'event_reminder', 'general'),
+    type: DataTypes.ENUM(
+      'task_created',
+      'task_assigned', 
+      'task_self_assigned',
+      'task_submitted', 
+      'task_approved', 
+      'task_rejected',
+      'task_updated',
+      'task_deleted',
+      'deadline_reminder', 
+      'leave_approved', 
+      'leave_rejected', 
+      'event_created',
+      'event_updated',
+      'event_reminder', 
+      'community_member_joined',
+      'community_member_left',
+      'general'
+    ),
     allowNull: false
   },
   is_read: {

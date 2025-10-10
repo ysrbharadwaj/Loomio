@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { BellIcon, CheckIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { 
+  BellIcon, 
+  CheckIcon, 
+  TrashIcon,
+  ClipboardDocumentCheckIcon,
+  CalendarIcon,
+  UserGroupIcon,
+  TrophyIcon,
+  ExclamationCircleIcon
+} from '@heroicons/react/24/outline';
 import api from '../services/api';
 
 const Notifications = () => {
@@ -85,19 +94,98 @@ const Notifications = () => {
     }
   };
 
-  const getNotificationIcon = (type) => {
+  const getNotificationIcon = (type, priority) => {
+    const baseClass = "w-10 h-10 p-2 rounded-full";
+    
     switch (type) {
-      case 'task':
-        return '📋';
-      case 'event':
-        return '📅';
-      case 'achievement': 
-        return '🏆';
-      case 'community':
-        return '👥';
+      case 'task_created':
+        return (
+          <div className={`${baseClass} bg-blue-100`}>
+            <ClipboardDocumentCheckIcon className="w-6 h-6 text-blue-600" />
+          </div>
+        );
+      case 'task_assigned':
+        return (
+          <div className={`${baseClass} bg-purple-100`}>
+            <ClipboardDocumentCheckIcon className="w-6 h-6 text-purple-600" />
+          </div>
+        );
+      case 'task_self_assigned':
+        return (
+          <div className={`${baseClass} bg-indigo-100`}>
+            <ClipboardDocumentCheckIcon className="w-6 h-6 text-indigo-600" />
+          </div>
+        );
+      case 'task_submitted':
+        return (
+          <div className={`${baseClass} bg-yellow-100`}>
+            <ClipboardDocumentCheckIcon className="w-6 h-6 text-yellow-600" />
+          </div>
+        );
+      case 'task_approved':
+      case 'task_completed':
+        return (
+          <div className={`${baseClass} bg-green-100`}>
+            <CheckIcon className="w-6 h-6 text-green-600" />
+          </div>
+        );
+      case 'task_rejected':
+        return (
+          <div className={`${baseClass} bg-red-100`}>
+            <ExclamationCircleIcon className="w-6 h-6 text-red-600" />
+          </div>
+        );
+      case 'task_updated':
+      case 'task_deleted':
+        return (
+          <div className={`${baseClass} bg-gray-100`}>
+            <ClipboardDocumentCheckIcon className="w-6 h-6 text-gray-600" />
+          </div>
+        );
+      case 'event_created':
+      case 'event_updated':
+      case 'event_reminder':
+        return (
+          <div className={`${baseClass} bg-teal-100`}>
+            <CalendarIcon className="w-6 h-6 text-teal-600" />
+          </div>
+        );
+      case 'community_member_joined':
+      case 'community_member_left':
+        return (
+          <div className={`${baseClass} bg-cyan-100`}>
+            <UserGroupIcon className="w-6 h-6 text-cyan-600" />
+          </div>
+        );
+      case 'leave_approved':
+      case 'leave_rejected':
+        return (
+          <div className={`${baseClass} bg-orange-100`}>
+            <CalendarIcon className="w-6 h-6 text-orange-600" />
+          </div>
+        );
       default:
-        return '📢';
+        return (
+          <div className={`${baseClass} bg-gray-100`}>
+            <BellIcon className="w-6 h-6 text-gray-600" />
+          </div>
+        );
     }
+  };
+
+  const getPriorityBadge = (priority) => {
+    if (!priority || priority === 'medium') return null;
+    
+    const colors = {
+      high: 'bg-red-100 text-red-800 border-red-200',
+      low: 'bg-gray-100 text-gray-800 border-gray-200'
+    };
+    
+    return (
+      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${colors[priority]}`}>
+        {priority === 'high' ? '⚡ High Priority' : 'Low Priority'}
+      </span>
+    );
   };
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
@@ -186,30 +274,39 @@ const Notifications = () => {
                 <div
                   key={notification.notification_id}
                   className={`p-6 hover:bg-gray-50 transition-colors duration-200 ${
-                    !notification.is_read ? 'bg-blue-50' : ''
+                    !notification.is_read ? 'bg-blue-50 border-l-4 border-primary-500' : ''
                   }`}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-start space-x-4 flex-1">
-                      <div className="text-2xl">
-                        {getNotificationIcon(notification.type)}
-                      </div>
+                      {getNotificationIcon(notification.type, notification.priority)}
                       <div className="flex-1">
                         <div className="flex items-center space-x-2 mb-1">
-                          <h3 className="text-sm font-semibold text-gray-900">
+                          <h3 className="text-base font-semibold text-gray-900">
                             {notification.title}
                           </h3>
                           {!notification.is_read && (
-                            <span className="w-2 h-2 bg-primary-500 rounded-full"></span>
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary-100 text-primary-800">
+                              New
+                            </span>
                           )}
+                          {getPriorityBadge(notification.priority)}
                         </div>
-                        <p className="text-sm text-gray-700 mb-2">
+                        <p className="text-sm text-gray-700 mb-3 leading-relaxed">
                           {notification.message}
                         </p>
                         <div className="flex items-center space-x-4 text-xs text-gray-500">
-                          <span>{formatTimeAgo(notification.created_at)}</span>
+                          <span className="flex items-center">
+                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            {formatTimeAgo(notification.created_at)}
+                          </span>
                           {notification.community && (
-                            <span>• {notification.community.name}</span>
+                            <span className="flex items-center">
+                              <UserGroupIcon className="w-4 h-4 mr-1" />
+                              {notification.community.name}
+                            </span>
                           )}
                         </div>
                       </div>
@@ -218,18 +315,18 @@ const Notifications = () => {
                       {!notification.is_read && (
                         <button
                           onClick={() => markAsRead(notification.notification_id)}
-                          className="p-1 text-gray-400 hover:text-primary-600 transition-colors"
+                          className="p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all duration-200"
                           title="Mark as read"
                         >
-                          <CheckIcon className="w-4 h-4" />
+                          <CheckIcon className="w-5 h-5" />
                         </button>
                       )}
                       <button
                         onClick={() => deleteNotification(notification.notification_id)}
-                        className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
                         title="Delete notification"
                       >
-                        <TrashIcon className="w-4 h-4" />
+                        <TrashIcon className="w-5 h-5" />
                       </button>
                     </div>
                   </div>

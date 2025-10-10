@@ -34,6 +34,8 @@ const Tasks = () => {
   const [showSubmissionModal, setShowSubmissionModal] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [showTaskDetailModal, setShowTaskDetailModal] = useState(false);
+  const [showIndividualReviewModal, setShowIndividualReviewModal] = useState(false);
+  const [selectedAssignment, setSelectedAssignment] = useState(null);
   const [submissionForm, setSubmissionForm] = useState({
     submission_link: '',
     submission_notes: ''
@@ -42,16 +44,22 @@ const Tasks = () => {
     action: 'approve',
     review_notes: ''
   });
+  const [individualReviewForm, setIndividualReviewForm] = useState({
+    action: 'approve',
+    review_notes: ''
+  });
+  const [showAssignUsersModal, setShowAssignUsersModal] = useState(false);
+  const [selectedUsersToAssign, setSelectedUsersToAssign] = useState([]);
 
   useEffect(() => {
-    // Set default community if user has communities
+  
     if (user?.communities && user.communities.length > 0 && !selectedCommunity) {
       setSelectedCommunity(user.communities[0]);
     }
   }, [user, selectedCommunity]);
 
   useEffect(() => {
-    // Always try to fetch tasks, even without a selected community
+
     fetchTasks();
     
     // Fetch community members if user is admin
@@ -300,6 +308,51 @@ const Tasks = () => {
     } catch (err) {
       console.error('Revoke task error:', err);
       setError(err.response?.data?.message || 'Failed to revoke task assignment');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleReviewIndividualAssignment = async (e) => {
+    e.preventDefault();
+    try {
+      setIsLoading(true);
+      const response = await api.post(
+        `/tasks/${selectedTask.task_id}/review/${selectedAssignment.user_id}`,
+        individualReviewForm
+      );
+      setSuccess(response.data.message);
+      setIndividualReviewForm({ action: 'approve', review_notes: '' });
+      setShowIndividualReviewModal(false);
+      setSelectedAssignment(null);
+      fetchTasks();
+    } catch (err) {
+      console.error('Review individual assignment error:', err);
+      setError(err.response?.data?.message || 'Failed to review assignment');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAssignUsersToTask = async () => {
+    if (selectedUsersToAssign.length === 0) {
+      setError('Please select at least one user to assign');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      setError('');
+      const response = await api.post(`/tasks/${selectedTask.task_id}/assign-users`, {
+        user_ids: selectedUsersToAssign.map(id => parseInt(id))
+      });
+      setSuccess(response.data.message);
+      setShowAssignUsersModal(false);
+      setSelectedUsersToAssign([]);
+      fetchTasks();
+    } catch (err) {
+      console.error('Assign users to task error:', err);
+      setError(err.response?.data?.message || 'Failed to assign users to task');
     } finally {
       setIsLoading(false);
     }
@@ -944,6 +997,119 @@ const Tasks = () => {
           </div>
         )}
 
+        {/* Individual Assignment Review Modal */}
+        {showIndividualReviewModal && selectedAssignment && selectedTask && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[60]">
+            <div className="bg-white rounded-xl shadow-xl border p-6 w-full max-w-2xl">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">
+                Review Submission: {selectedAssignment.full_name}
+              </h3>
+              
+              <div className="mb-2 text-sm text-gray-600">
+                Task: <span className="font-medium text-gray-900">{selectedTask.title}</span>
+              </div>
+              
+              {/* Individual Submission Details */}
+              <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                <h4 className="font-medium text-gray-900 mb-2">Submission Details</h4>
+                {selectedAssignment.TaskAssignment?.submission_notes && (
+                  <div className="mb-3">
+                    <span className="text-sm font-medium text-gray-600">Notes:</span>
+                    <p className="text-gray-700 mt-1 whitespace-pre-wrap">
+                      {selectedAssignment.TaskAssignment.submission_notes}
+                    </p>
+                  </div>
+                )}
+                {selectedAssignment.TaskAssignment?.submission_link && (
+                  <div className="mb-3">
+                    <span className="text-sm font-medium text-gray-600">Link:</span>
+                    <a 
+                      href={selectedAssignment.TaskAssignment.submission_link} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline text-sm ml-2"
+                    >
+                      {selectedAssignment.TaskAssignment.submission_link} →
+                    </a>
+                  </div>
+                )}
+                {selectedAssignment.TaskAssignment?.submitted_at && (
+                  <p className="text-sm text-gray-500">
+                    Submitted: {formatDate(selectedAssignment.TaskAssignment.submitted_at)}
+                  </p>
+                )}
+              </div>
+              
+              <form onSubmit={handleReviewIndividualAssignment} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Review Decision
+                  </label>
+                  <div className="space-y-2">
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        value="approve"
+                        checked={individualReviewForm.action === 'approve'}
+                        onChange={(e) => setIndividualReviewForm({ ...individualReviewForm, action: e.target.value })}
+                        className="mr-2"
+                      />
+                      <span className="text-green-700 font-medium">Approve this submission</span>
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        value="reject"
+                        checked={individualReviewForm.action === 'reject'}
+                        onChange={(e) => setIndividualReviewForm({ ...individualReviewForm, action: e.target.value })}
+                        className="mr-2"
+                      />
+                      <span className="text-red-700 font-medium">Reject this submission</span>
+                    </label>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Review Notes (for {selectedAssignment.full_name})
+                  </label>
+                  <textarea
+                    value={individualReviewForm.review_notes}
+                    onChange={(e) => setIndividualReviewForm({ ...individualReviewForm, review_notes: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 h-24 resize-none"
+                    placeholder="Provide feedback to this team member..."
+                  />
+                </div>
+                
+                <div className="flex space-x-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowIndividualReviewModal(false);
+                      setSelectedAssignment(null);
+                      setIndividualReviewForm({ action: 'approve', review_notes: '' });
+                    }}
+                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className={`flex-1 px-4 py-2 font-medium rounded-lg transition-colors disabled:opacity-50 ${
+                      individualReviewForm.action === 'approve' 
+                        ? 'bg-green-600 hover:bg-green-700 text-white'
+                        : 'bg-red-600 hover:bg-red-700 text-white'
+                    }`}
+                  >
+                    {isLoading ? 'Processing...' : (individualReviewForm.action === 'approve' ? 'Approve' : 'Reject')}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
         {/* Task Detail Modal */}
         {showTaskDetailModal && selectedTask && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
@@ -1047,26 +1213,69 @@ const Tasks = () => {
                 <div className="space-y-6">
                   {/* Assignees */}
                   <div className="bg-gray-50 rounded-lg p-4">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Assignees</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                      Assignees {selectedTask.task_type === 'group' && `(${selectedTask.assignees?.length || 0}/${selectedTask.max_assignees || 1})`}
+                    </h3>
                     {selectedTask.assignees && selectedTask.assignees.length > 0 ? (
                       <div className="space-y-2">
-                        {selectedTask.assignees.map((assignee) => (
-                          <div key={assignee.user_id} className="flex items-center justify-between p-2 bg-white rounded border">
-                            <div className="flex items-center space-x-2">
-                              <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
-                                <span className="text-sm font-medium text-primary-600">
-                                  {assignee.full_name.charAt(0)}
-                                </span>
+                        {selectedTask.assignees.map((assignee) => {
+                          const assignment = assignee.TaskAssignment;
+                          const isAdmin = selectedCommunity?.UserCommunity?.role === 'community_admin' || user?.role === 'platform_admin';
+                          const canReview = isAdmin && assignment?.status === 'submitted';
+                          
+                          return (
+                            <div key={assignee.user_id} className="flex items-center justify-between p-3 bg-white rounded border">
+                              <div className="flex items-center space-x-3 flex-1">
+                                <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                                  <span className="text-sm font-medium text-primary-600">
+                                    {assignee.full_name.charAt(0)}
+                                  </span>
+                                </div>
+                                <div className="flex-1">
+                                  <span className="font-medium text-gray-900">{assignee.full_name}</span>
+                                  {assignment?.status && (
+                                    <div className="flex items-center space-x-2 mt-1">
+                                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(assignment.status)}`}>
+                                        {assignment.status}
+                                      </span>
+                                      {assignment.submitted_at && (
+                                        <span className="text-xs text-gray-500">
+                                          Submitted {formatDate(assignment.submitted_at)}
+                                        </span>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
                               </div>
-                              <span className="font-medium text-gray-900">{assignee.full_name}</span>
+                              
+                              {/* Individual submission review button for group tasks */}
+                              {canReview && selectedTask.task_type === 'group' && (
+                                <button
+                                  onClick={() => {
+                                    setSelectedAssignment(assignee);
+                                    setIndividualReviewForm({ action: 'approve', review_notes: '' });
+                                    setShowIndividualReviewModal(true);
+                                  }}
+                                  className="ml-2 px-3 py-1 text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg font-medium transition-colors flex items-center space-x-1"
+                                  title="Review this submission"
+                                >
+                                  <span>Review</span>
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                  </svg>
+                                </button>
+                              )}
+                              
+                              {/* Show review status for reviewed assignments */}
+                              {assignment?.status === 'completed' && (
+                                <span className="ml-2 text-xs text-green-600 font-medium">✓ Approved</span>
+                              )}
+                              {assignment?.status === 'rejected' && (
+                                <span className="ml-2 text-xs text-red-600 font-medium">✗ Rejected</span>
+                              )}
                             </div>
-                            {assignee.TaskAssignment?.status && (
-                              <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(assignee.TaskAssignment.status)}`}>
-                                {assignee.TaskAssignment.status}
-                              </span>
-                            )}
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     ) : (
                       <p className="text-gray-500 text-sm">No assignees</p>
@@ -1129,8 +1338,12 @@ const Tasks = () => {
                         const userAssignment = selectedTask.assignees?.find(a => a.user_id === user.user_id);
                         const isAssignedToUser = !!userAssignment;
                         const currentAssigneeCount = selectedTask.assignees?.length || 0;
+                        // Allow self-assignment for group tasks even when status is 'submitted' if slots available
+                        const allowedStatuses = selectedTask.task_type === 'group' 
+                          ? ['not_started', 'in_progress', 'submitted']
+                          : ['not_started', 'in_progress'];
                         const canSelfAssign = !isAssignedToUser && 
-                          (selectedTask.status === 'not_started' || (selectedTask.status === 'in_progress' && selectedTask.task_type === 'group')) &&
+                          allowedStatuses.includes(selectedTask.status) &&
                           (selectedTask.task_type === 'individual' ? currentAssigneeCount === 0 : currentAssigneeCount < (selectedTask.max_assignees || 1));
                         const canAccept = isAssignedToUser && userAssignment.TaskAssignment?.status === 'assigned';
                         const canStartWorking = isAssignedToUser && userAssignment.TaskAssignment?.status === 'accepted';
@@ -1223,12 +1436,122 @@ const Tasks = () => {
                                 Delete Task
                               </button>
                             )}
+
+                            {isAdmin && selectedTask.task_type === 'group' && currentAssigneeCount < (selectedTask.max_assignees || 1) && (
+                              <button
+                                onClick={() => {
+                                  setShowAssignUsersModal(true);
+                                }}
+                                className="px-3 py-2 text-sm bg-indigo-100 text-indigo-700 hover:bg-indigo-200 rounded-lg font-medium transition-colors"
+                              >
+                                Assign Users
+                              </button>
+                            )}
                           </>
                         );
                       })()}
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Assign Users Modal */}
+        {showAssignUsersModal && selectedTask && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-xl shadow-xl border p-6 w-full max-w-md">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-gray-900">Assign Users to Task</h2>
+                <button
+                  onClick={() => {
+                    setShowAssignUsersModal(false);
+                    setSelectedUsersToAssign([]);
+                  }}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="mb-4">
+                <p className="text-sm text-gray-600 mb-2">
+                  Task: <span className="font-semibold text-gray-900">{selectedTask.title}</span>
+                </p>
+                <p className="text-sm text-gray-600">
+                  Available Slots: <span className="font-semibold text-gray-900">
+                    {(selectedTask.max_assignees || 1) - (selectedTask.assignees?.length || 0)}
+                  </span>
+                </p>
+              </div>
+
+              {error && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+                  {error}
+                </div>
+              )}
+
+              <div className="mb-6 max-h-64 overflow-y-auto border border-gray-200 rounded-lg">
+                {communityMembers && communityMembers.length > 0 ? (
+                  communityMembers
+                    .filter(member => !selectedTask.assignees?.some(a => a.user_id === member.user_id))
+                    .map(member => (
+                      <label
+                        key={member.user_id}
+                        className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedUsersToAssign.includes(member.user_id.toString())}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              const availableSlots = (selectedTask.max_assignees || 1) - (selectedTask.assignees?.length || 0);
+                              if (selectedUsersToAssign.length >= availableSlots) {
+                                setError(`Can only assign ${availableSlots} more user(s)`);
+                                return;
+                              }
+                              setSelectedUsersToAssign([...selectedUsersToAssign, member.user_id.toString()]);
+                              setError('');
+                            } else {
+                              setSelectedUsersToAssign(selectedUsersToAssign.filter(id => id !== member.user_id.toString()));
+                              setError('');
+                            }
+                          }}
+                          className="mr-3 h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                        />
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-900">{member.full_name}</p>
+                          <p className="text-xs text-gray-500">{member.email}</p>
+                        </div>
+                      </label>
+                    ))
+                ) : (
+                  <p className="text-gray-500 text-sm p-4 text-center">No available community members</p>
+                )}
+              </div>
+
+              <div className="flex space-x-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAssignUsersModal(false);
+                    setSelectedUsersToAssign([]);
+                    setError('');
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAssignUsersToTask}
+                  disabled={isLoading || selectedUsersToAssign.length === 0}
+                  className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                >
+                  {isLoading ? 'Assigning...' : `Assign ${selectedUsersToAssign.length} User(s)`}
+                </button>
               </div>
             </div>
           </div>

@@ -1,5 +1,6 @@
 const { Task, User, TaskAssignment, Community, Contribution } = require('../models');
 const { Op } = require('sequelize');
+const notificationService = require('../services/notificationService');
 
 // Get all tasks
 const getAllTasks = async (req, res) => {
@@ -82,7 +83,7 @@ const getAllTasks = async (req, res) => {
           as: 'assignees', 
           attributes: ['user_id', 'full_name', 'email'],
           through: { 
-            attributes: ['status', 'assigned_at', 'accepted_at', 'completed_at'],
+            attributes: ['status', 'assigned_at', 'accepted_at', 'completed_at', 'submission_link', 'submission_notes', 'submitted_at', 'review_notes', 'reviewed_at'],
             as: 'TaskAssignment'
           },
           required: false
@@ -144,7 +145,7 @@ const getTaskById = async (req, res) => {
           as: 'assignees', 
           attributes: ['user_id', 'full_name', 'email'],
           through: { 
-            attributes: ['status', 'assigned_at', 'accepted_at', 'completed_at', 'notes'],
+            attributes: ['status', 'assigned_at', 'accepted_at', 'completed_at', 'notes', 'submission_link', 'submission_notes', 'submitted_at', 'review_notes', 'reviewed_at'],
             as: 'TaskAssignment'
           },
           required: false
@@ -265,6 +266,30 @@ const createTask = async (req, res) => {
       ]
     });
 
+    // Send notifications
+    try {
+      const community = await Community.findByPk(community_id);
+      
+      // Notify all community members about the new task
+      await notificationService.notifyTaskCreated(
+        task, 
+        req.user.full_name, 
+        community.name
+      );
+
+      // If users were assigned, send assignment notifications
+      if (assignee_ids.length > 0) {
+        await notificationService.notifyTaskAssigned(
+          task,
+          assignee_ids,
+          req.user.full_name,
+          community.name
+        );
+      }
+    } catch (notifError) {
+      console.error('Error sending task creation notifications:', notifError);
+    }
+
     res.status(201).json({
       message: 'Task created successfully',
       task: createdTask.toJSON()
@@ -338,6 +363,21 @@ const updateTask = async (req, res) => {
       ]
     });
 
+    // Send notifications to assignees about task update
+    try {
+      if (updatedTask.assignees && updatedTask.assignees.length > 0) {
+        const assigneeIds = updatedTask.assignees.map(a => a.user_id);
+        await notificationService.notifyTaskUpdated(
+          updatedTask,
+          assigneeIds,
+          req.user.full_name,
+          updatedTask.community.name
+        );
+      }
+    } catch (notifError) {
+      console.error('Error sending task update notifications:', notifError);
+    }
+
     res.json({
       message: 'Task updated successfully',
       task: updatedTask.toJSON()
@@ -353,7 +393,21 @@ const deleteTask = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const task = await Task.findByPk(id);
+    const task = await Task.findByPk(id, {
+      include: [
+        { 
+          model: User, 
+          as: 'assignees', 
+          attributes: ['user_id'] 
+        },
+        { 
+          model: Community, 
+          as: 'community', 
+          attributes: ['community_id', 'name'] 
+        }
+      ]
+    });
+    
     if (!task) {
       return res.status(404).json({ message: 'Task not found' });
     }
@@ -363,11 +417,32 @@ const deleteTask = async (req, res) => {
       return res.status(403).json({ message: 'Insufficient permissions' });
     }
 
+    // Store data for notification before deletion
+    const taskTitle = task.title;
+    const assigneeIds = task.assignees ? task.assignees.map(a => a.user_id) : [];
+    const communityId = task.community_id;
+    const communityName = task.community ? task.community.name : 'Community';
+
     // Delete task assignments first
     await TaskAssignment.destroy({ where: { task_id: id } });
 
     // Delete task
     await task.destroy();
+
+    // Send notifications to assignees about task deletion
+    try {
+      if (assigneeIds.length > 0) {
+        await notificationService.notifyTaskDeleted(
+          taskTitle,
+          assigneeIds,
+          req.user.full_name,
+          communityId,
+          communityName
+        );
+      }
+    } catch (notifError) {
+      console.error('Error sending task deletion notifications:', notifError);
+    }
 
     res.json({ message: 'Task deleted successfully' });
   } catch (error) {
@@ -558,6 +633,33 @@ const assignTaskToUsers = async (req, res) => {
       return res.status(403).json({ message: 'Only community administrators can assign tasks' });
     }
 
+    // For group tasks, allow assignment if not completed/cancelled/rejected
+    // For individual tasks, only allow if not_started or in_progress
+    const allowedStatuses = task.task_type === 'group' 
+      ? ['not_started', 'in_progress', 'submitted'] 
+      : ['not_started', 'in_progress'];
+
+    if (!allowedStatuses.includes(task.status)) {
+      return res.status(400).json({ 
+        message: task.task_type === 'group' 
+          ? 'Task is no longer available for assignment' 
+          : 'Task is not available for assignment' 
+      });
+    }
+
+    // For group tasks, check if max assignees limit would be exceeded
+    if (task.task_type === 'group') {
+      const currentAssigneeCount = await TaskAssignment.count({
+        where: { task_id: parseInt(id) }
+      });
+
+      if (currentAssigneeCount + user_ids.length > task.max_assignees) {
+        return res.status(400).json({ 
+          message: `Cannot assign ${user_ids.length} users. Only ${task.max_assignees - currentAssigneeCount} slots available.` 
+        });
+      }
+    }
+
     // Create assignments for each user
     const assignments = [];
     for (const user_id of user_ids) {
@@ -575,6 +677,21 @@ const assignTaskToUsers = async (req, res) => {
         }
         throw error;
       }
+    }
+
+    // Send notifications to assigned users
+    try {
+      const assignedUserIds = assignments.map(a => a.user_id);
+      if (assignedUserIds.length > 0) {
+        await notificationService.notifyTaskAssigned(
+          task,
+          assignedUserIds,
+          req.user.full_name,
+          task.community.name
+        );
+      }
+    } catch (notifError) {
+      console.error('Error sending task assignment notifications:', notifError);
     }
 
     res.json({
@@ -600,8 +717,18 @@ const selfAssignTask = async (req, res) => {
       return res.status(404).json({ message: 'Task not found' });
     }
 
-    if (task.status !== 'not_started' && task.status !== 'in_progress') {
-      return res.status(400).json({ message: 'Task is not available for self-assignment' });
+    // For group tasks, allow self-assignment if not completed/cancelled/rejected and slots available
+    // For individual tasks, only allow if not_started or in_progress
+    const allowedStatuses = task.task_type === 'group' 
+      ? ['not_started', 'in_progress', 'submitted'] 
+      : ['not_started', 'in_progress'];
+
+    if (!allowedStatuses.includes(task.status)) {
+      return res.status(400).json({ 
+        message: task.task_type === 'group' 
+          ? 'Task is no longer available for self-assignment' 
+          : 'Task is not available for self-assignment' 
+      });
     }
 
     // Check if user is already assigned
@@ -658,9 +785,20 @@ const selfAssignTask = async (req, res) => {
       accepted_at: new Date()
     });
 
-    // Update task status only if it's the first assignment
+    // Update task status to in_progress if it was not_started
     if (task.status === 'not_started') {
       await task.update({ status: 'in_progress' });
+    }
+
+    // Notify community admins about self-assignment
+    try {
+      await notificationService.notifyTaskSelfAssigned(
+        task,
+        req.user.full_name,
+        task.community.name
+      );
+    } catch (notifError) {
+      console.error('Error sending self-assignment notification:', notifError);
     }
 
     res.json({
@@ -704,24 +842,53 @@ const submitTask = async (req, res) => {
       return res.status(400).json({ message: 'Task cannot be submitted after the deadline has passed' });
     }
 
-    // Update task with submission details
-    await assignment.task.update({
+    // Update assignment with individual submission
+    await assignment.update({
       status: 'submitted',
       submission_link: submission_link || null,
       submission_notes: submission_notes || null,
       submitted_at: new Date()
     });
 
-    // Update assignment status
-    await assignment.update({
-      status: 'submitted'
+    // For individual tasks or when all group members have submitted, update task status
+    const allAssignments = await TaskAssignment.findAll({
+      where: { task_id: parseInt(id) }
     });
+
+    const allSubmitted = allAssignments.every(a => a.status === 'submitted' || a.status === 'completed' || a.status === 'rejected');
+    
+    if (assignment.task.task_type === 'individual' || allSubmitted) {
+      await assignment.task.update({
+        status: 'submitted',
+        submitted_at: new Date()
+      });
+    }
+
+    // Notify community admins about task submission
+    try {
+      await notificationService.notifyTaskSubmitted(
+        assignment.task,
+        req.user.full_name,
+        assignment.task.community.name
+      );
+    } catch (notifError) {
+      console.error('Error sending task submission notification:', notifError);
+    }
 
     res.json({
       message: 'Task submitted successfully. Awaiting admin review.',
       task: await Task.findByPk(id, {
         include: [
           { model: User, as: 'creator', attributes: ['user_id', 'full_name', 'email'] },
+          { 
+            model: User, 
+            as: 'assignees', 
+            attributes: ['user_id', 'full_name', 'email'],
+            through: { 
+              attributes: ['status', 'submission_link', 'submission_notes', 'submitted_at', 'review_notes', 'reviewed_at'],
+              as: 'TaskAssignment'
+            }
+          },
           { model: Community, as: 'community', attributes: ['community_id', 'name'] }
         ]
       })
@@ -798,7 +965,10 @@ const reviewTaskSubmission = async (req, res) => {
       const pointsToAward = 10; // Standard points for task completion
       const { Contribution } = require('../models');
 
+      const assigneeIds = [];
       for (const assignment of assignments) {
+        assigneeIds.push(assignment.user_id);
+        
         // Update user's total points
         await User.increment('points', {
           by: pointsToAward,
@@ -814,6 +984,36 @@ const reviewTaskSubmission = async (req, res) => {
           points: pointsToAward,
           description: `Completed task: ${task.title}`
         });
+      }
+
+      // Notify assignees about task approval
+      try {
+        await notificationService.notifyTaskApproved(
+          task,
+          assigneeIds,
+          req.user.full_name,
+          task.community.name
+        );
+      } catch (notifError) {
+        console.error('Error sending task approval notification:', notifError);
+      }
+    } else {
+      // Notify assignees about task rejection
+      try {
+        const assignments = await TaskAssignment.findAll({
+          where: { task_id: parseInt(id) }
+        });
+        const assigneeIds = assignments.map(a => a.user_id);
+        
+        await notificationService.notifyTaskRejected(
+          task,
+          assigneeIds,
+          req.user.full_name,
+          review_notes,
+          task.community.name
+        );
+      } catch (notifError) {
+        console.error('Error sending task rejection notification:', notifError);
       }
     }
 
@@ -915,6 +1115,133 @@ const revokeTaskAssignment = async (req, res) => {
   }
 };
 
+// Review individual assignment (for group tasks)
+const reviewIndividualAssignment = async (req, res) => {
+  try {
+    const { taskId, userId } = req.params;
+    const { action, review_notes } = req.body; // action: 'approve' or 'reject'
+
+    if (!['approve', 'reject'].includes(action)) {
+      return res.status(400).json({ message: 'Action must be either "approve" or "reject"' });
+    }
+
+    const task = await Task.findByPk(taskId);
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' });
+    }
+
+    // Verify user is admin of the community
+    const { UserCommunity } = require('../models');
+    const userCommunity = await UserCommunity.findOne({
+      where: { 
+        user_id: req.user.user_id, 
+        community_id: task.community_id,
+        role: 'community_admin'
+      }
+    });
+
+    if (!userCommunity && req.user.role !== 'platform_admin') {
+      return res.status(403).json({ message: 'Only community administrators can review submissions' });
+    }
+
+    const assignment = await TaskAssignment.findOne({
+      where: {
+        task_id: parseInt(taskId),
+        user_id: parseInt(userId)
+      }
+    });
+
+    if (!assignment) {
+      return res.status(404).json({ message: 'Assignment not found' });
+    }
+
+    if (assignment.status !== 'submitted') {
+      return res.status(400).json({ message: 'Assignment is not in submitted status' });
+    }
+
+    const newStatus = action === 'approve' ? 'completed' : 'rejected';
+    const completionDate = action === 'approve' ? new Date() : null;
+
+    // Update assignment
+    await assignment.update({
+      status: newStatus,
+      reviewed_by: req.user.user_id,
+      reviewed_at: new Date(),
+      review_notes: review_notes || null,
+      completed_at: completionDate
+    });
+
+    // Award points if approved
+    if (action === 'approve') {
+      const pointsToAward = 10;
+      const { Contribution } = require('../models');
+
+      await User.increment('points', {
+        by: pointsToAward,
+        where: { user_id: parseInt(userId) }
+      });
+
+      await Contribution.create({
+        user_id: parseInt(userId),
+        task_id: parseInt(taskId),
+        community_id: task.community_id,
+        type: 'task_completion',
+        points: pointsToAward,
+        description: `Completed task: ${task.title}`
+      });
+    }
+
+    // Check if all assignments are reviewed
+    const allAssignments = await TaskAssignment.findAll({
+      where: { task_id: parseInt(taskId) }
+    });
+
+    const allReviewed = allAssignments.every(a => 
+      ['completed', 'rejected'].includes(a.status)
+    );
+
+    // If all assignments are reviewed, update task status
+    if (allReviewed) {
+      const anyApproved = allAssignments.some(a => a.status === 'completed');
+      await task.update({
+        status: anyApproved ? 'completed' : 'rejected',
+        reviewed_by: req.user.user_id,
+        reviewed_at: new Date(),
+        completion_date: anyApproved ? new Date() : null
+      });
+    }
+
+    res.json({
+      message: `Assignment ${action}d successfully`,
+      assignment: await TaskAssignment.findOne({
+        where: {
+          task_id: parseInt(taskId),
+          user_id: parseInt(userId)
+        },
+        include: [
+          { model: User, as: 'user', attributes: ['user_id', 'full_name', 'email'] }
+        ]
+      }),
+      task: await Task.findByPk(taskId, {
+        include: [
+          { 
+            model: User, 
+            as: 'assignees', 
+            attributes: ['user_id', 'full_name', 'email'],
+            through: { 
+              attributes: ['status', 'submission_link', 'submission_notes', 'submitted_at', 'review_notes', 'reviewed_at'],
+              as: 'TaskAssignment'
+            }
+          }
+        ]
+      })
+    });
+  } catch (error) {
+    console.error('Review individual assignment error:', error);
+    res.status(500).json({ message: 'Failed to review assignment', error: error.message });
+  }
+};
+
 module.exports = {
   getAllTasks,
   getTaskById,
@@ -928,6 +1255,7 @@ module.exports = {
   selfAssignTask,
   submitTask,
   reviewTaskSubmission,
+  reviewIndividualAssignment,
   deleteTaskById,
   revokeTaskAssignment
 };

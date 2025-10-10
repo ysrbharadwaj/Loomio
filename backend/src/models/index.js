@@ -8,6 +8,10 @@ const LeaveRequest = require('./LeaveRequest');
 const Event = require('./Event');
 const Contribution = require('./Contribution');
 const Notification = require('./Notification');
+const TaskTag = require('./TaskTag');
+const TaskTagAssignment = require('./TaskTagAssignment');
+const Subtask = require('./Subtask');
+const UserStatistics = require('./UserStatistics');
 
 // User-Community many-to-many associations
 User.belongsToMany(Community, { 
@@ -79,6 +83,37 @@ Event.belongsTo(Community, { foreignKey: 'community_id', as: 'community' });
 Notification.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 Notification.belongsTo(Community, { foreignKey: 'community_id', as: 'community' });
 
+// TaskTag associations
+TaskTag.belongsTo(Community, { foreignKey: 'community_id', as: 'community' });
+TaskTag.belongsTo(User, { foreignKey: 'created_by', as: 'creator' });
+TaskTag.belongsToMany(Task, {
+  through: TaskTagAssignment,
+  foreignKey: 'tag_id',
+  otherKey: 'task_id',
+  as: 'tasks'
+});
+Task.belongsToMany(TaskTag, {
+  through: TaskTagAssignment,
+  foreignKey: 'task_id',
+  otherKey: 'tag_id',
+  as: 'tags'
+});
+
+// TaskTagAssignment associations
+TaskTagAssignment.belongsTo(Task, { foreignKey: 'task_id', as: 'task' });
+TaskTagAssignment.belongsTo(TaskTag, { foreignKey: 'tag_id', as: 'tag' });
+
+// Subtask associations
+Subtask.belongsTo(Task, { foreignKey: 'parent_task_id', as: 'parentTask' });
+Subtask.belongsTo(User, { foreignKey: 'assigned_to', as: 'assignee' });
+Subtask.belongsTo(User, { foreignKey: 'created_by', as: 'creator' });
+Subtask.belongsTo(User, { foreignKey: 'completed_by', as: 'completer' });
+Task.hasMany(Subtask, { foreignKey: 'parent_task_id', as: 'subtasks' });
+
+// UserStatistics associations
+UserStatistics.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+UserStatistics.belongsTo(Community, { foreignKey: 'community_id', as: 'community' });
+
 module.exports = {
   User,
   Community,
@@ -89,5 +124,9 @@ module.exports = {
   Attendance,
   LeaveRequest,
   Event,
-  Notification
+  Notification,
+  TaskTag,
+  TaskTagAssignment,
+  Subtask,
+  UserStatistics
 };

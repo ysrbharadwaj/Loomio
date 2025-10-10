@@ -1,5 +1,6 @@
 const { Community, User, UserCommunity, Task, Event, Contribution } = require('../models');
 const { Op } = require('sequelize');
+const notificationService = require('../services/notificationService');
 
 // Get all communities
 const getAllCommunities = async (req, res) => {
@@ -278,6 +279,18 @@ const joinCommunity = async (req, res) => {
       ]
     });
 
+    // Notify community admins about new member
+    try {
+      const user = await User.findByPk(userId);
+      await notificationService.notifyMemberJoined(
+        community.community_id,
+        user.full_name,
+        community.name
+      );
+    } catch (notifError) {
+      console.error('Error sending member joined notification:', notifError);
+    }
+
     res.json({
       message: 'Successfully joined community',
       user: updatedUser.toJSON(),
@@ -334,6 +347,18 @@ const leaveCommunity = async (req, res) => {
         }
       ]
     });
+
+    // Notify community admins about member leaving
+    try {
+      const user = await User.findByPk(userId);
+      await notificationService.notifyMemberLeft(
+        community_id,
+        user.full_name,
+        community.name
+      );
+    } catch (notifError) {
+      console.error('Error sending member left notification:', notifError);
+    }
 
     res.json({
       message: 'Successfully left community',

@@ -42,6 +42,34 @@ const TaskAssignment = sequelize.define('TaskAssignment', {
   notes: {
     type: DataTypes.TEXT,
     allowNull: true
+  },
+  submission_link: {
+    type: DataTypes.STRING(500),
+    allowNull: true
+  },
+  submission_notes: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  submitted_at: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
+  review_notes: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  reviewed_at: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
+  reviewed_by: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: 'Users',
+      key: 'user_id'
+    }
   }
 }, {
   tableName: 'task_assignments',

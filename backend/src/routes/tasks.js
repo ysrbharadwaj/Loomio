@@ -13,6 +13,7 @@ const {
   selfAssignTask,
   submitTask,
   reviewTaskSubmission,
+  reviewIndividualAssignment,
   deleteTaskById,
   revokeTaskAssignment
 } = require('../controllers/taskController');
@@ -62,6 +63,9 @@ router.post('/:id/submit', authenticateToken, validateId, submitTask);
 
 // Review task submission - approve or reject (admin only)
 router.post('/:id/review', authenticateToken, validateId, reviewTaskSubmission);
+
+// Review individual assignment in group task (admin only)
+router.post('/:taskId/review/:userId', authenticateToken, reviewIndividualAssignment);
 
 // Delete task completely (admin only)
 router.delete('/:id/delete', authenticateToken, validateId, deleteTaskById);

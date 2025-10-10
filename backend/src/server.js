@@ -36,6 +36,10 @@ app.use('/api/tasks', require('./routes/tasks'));
 app.use('/api/events', require('./routes/events'));
 app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/analytics', require('./routes/analytics'));
+app.use('/api/leaderboard', require('./routes/leaderboard'));
+app.use('/api/statistics', require('./routes/statistics'));
+app.use('/api/tags', require('./routes/tags'));
+app.use('/api/subtasks', require('./routes/subtasks'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

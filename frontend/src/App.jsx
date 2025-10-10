@@ -13,6 +13,7 @@ import Calendar from './pages/Calendar';
 import Profile from './pages/Profile';
 import Notifications from './pages/Notifications';
 import Analytics from './pages/Analytics';
+import Leaderboard from './pages/Leaderboard';
 import LoadingSpinner from './components/LoadingSpinner';
 
 function App() {
@@ -37,6 +38,7 @@ function App() {
               <Route path="communities" element={<Communities />} />
               <Route path="tasks" element={<Tasks />} />
               <Route path="calendar" element={<Calendar />} />
+              <Route path="leaderboard" element={<Leaderboard />} />
               <Route path="profile" element={<Profile />} />
               <Route path="settings" element={<Profile />} />
               <Route path="notifications" element={<Notifications />} />

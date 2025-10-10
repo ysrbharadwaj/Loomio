@@ -1,5 +1,6 @@
 const { Event, User, Community } = require('../models');
 const { Op } = require('sequelize');
+const notificationService = require('../services/notificationService');
 
 // Get all events
 const getAllEvents = async (req, res) => {
@@ -159,6 +160,17 @@ const createEvent = async (req, res) => {
       ]
     });
 
+    // Notify community members about the new event
+    try {
+      await notificationService.notifyEventCreated(
+        event,
+        req.user.full_name,
+        createdEvent.community.name
+      );
+    } catch (notifError) {
+      console.error('Error sending event creation notification:', notifError);
+    }
+
     res.status(201).json({
       message: 'Event created successfully',
       event: createdEvent.toJSON()
@@ -224,6 +236,17 @@ const updateEvent = async (req, res) => {
         }
       ]
     });
+
+    // Notify community members about the event update
+    try {
+      await notificationService.notifyEventUpdated(
+        updatedEvent,
+        req.user.full_name,
+        updatedEvent.community.name
+      );
+    } catch (notifError) {
+      console.error('Error sending event update notification:', notifError);
+    }
 
     res.json({
       message: 'Event updated successfully',
