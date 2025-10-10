@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { EyeIcon, EyeSlashIcon, UserGroupIcon } from '@heroicons/react/24/outline';
+import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import LoadingSpinner from '../components/LoadingSpinner';
+import loomioLogo from '../assets/Loomio.png';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -115,8 +116,8 @@ const Register = () => {
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         {/* Header */}
         <div className="text-center">
-          <div className="mx-auto h-16 w-16 bg-primary-600 rounded-full flex items-center justify-center mb-6">
-            <UserGroupIcon className="h-8 w-8 text-white" />
+          <div className="mx-auto h-16 w-16 rounded-xl flex items-center justify-center mb-6">
+            <img src={loomioLogo} alt="Loomio" className="h-16 w-16 object-contain" />
           </div>
           <h2 className="text-3xl font-bold text-gray-900 mb-2">
             Create Account

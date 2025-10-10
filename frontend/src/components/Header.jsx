@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { BellIcon, UserCircleIcon, SparklesIcon, Cog6ToothIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
+import { BellIcon, UserCircleIcon, Cog6ToothIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
 import { Menu, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import api from '../services/api';
+import loomioLogo from '../assets/Loomio.png';
 
 const Header = () => {
   const { user, logout } = useAuth();
@@ -72,8 +73,8 @@ const Header = () => {
         <div className="flex justify-between items-center h-20">
           {/* Logo/Brand */}
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-              <SparklesIcon className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center">
+              <img src={loomioLogo} alt="Loomio" className="w-10 h-10 object-contain" />
             </div>
             <div>
               <h1 className="text-xl font-bold text-gray-900">

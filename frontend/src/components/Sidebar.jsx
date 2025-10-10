@@ -8,8 +8,9 @@ import {
   CalendarDaysIcon,
   ChartBarIcon,
   CogIcon,
-  BuildingOffice2Icon
+  TrophyIcon
 } from '@heroicons/react/24/outline';
+import loomioLogo from '../assets/Loomio.png';
 
 const Sidebar = () => {
   const { user } = useAuth();
@@ -19,6 +20,7 @@ const Sidebar = () => {
     { name: 'Communities', href: '/communities', icon: UserGroupIcon },
     { name: 'Tasks', href: '/tasks', icon: ClipboardDocumentListIcon },
     { name: 'Calendar', href: '/calendar', icon: CalendarDaysIcon },
+    { name: 'Leaderboard', href: '/leaderboard', icon: TrophyIcon },
   ];
 
   // Add admin-only routes
@@ -33,8 +35,8 @@ const Sidebar = () => {
       {/* Logo/Brand */}
       <div className="px-6 py-8 border-b border-slate-700">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center">
-            <BuildingOffice2Icon className="w-6 h-6 text-white" />
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center">
+            <img src={loomioLogo} alt="Loomio" className="w-10 h-10 object-contain" />
           </div>
           <div>
             <h1 className="text-xl font-bold text-white">
