@@ -2,6 +2,42 @@ const { Task, User, TaskAssignment, Community, Contribution } = require('../mode
 const { Op } = require('sequelize');
 const notificationService = require('../services/notificationService');
 
+/**
+ * Gamified Points Calculator
+ * Calculates points based on task priority and completion time
+ */
+const calculateTaskPoints = (task) => {
+  // Base points by priority
+  const pointsMap = {
+    'low': 5,      // Easy tasks - 5 points ⭐
+    'medium': 10,  // Standard tasks - 10 points ⭐⭐
+    'high': 20,    // Important tasks - 20 points ⭐⭐⭐
+    'urgent': 30   // Critical tasks - 30 points ⭐⭐⭐⭐
+  };
+  
+  let points = pointsMap[task.priority] || 10;
+  let bonusReason = '';
+  
+  // Early completion bonus
+  if (task.deadline && task.submitted_at) {
+    const deadline = new Date(task.deadline);
+    const submittedAt = new Date(task.submitted_at);
+    
+    if (submittedAt < deadline) {
+      const daysEarly = Math.floor((deadline - submittedAt) / (1000 * 60 * 60 * 24));
+      if (daysEarly >= 3) {
+        points += 10;
+        bonusReason = `+10 bonus (${daysEarly} days early!) 🚀`;
+      } else if (daysEarly >= 1) {
+        points += 5;
+        bonusReason = `+5 bonus (${daysEarly} days early) ⚡`;
+      }
+    }
+  }
+  
+  return { points, bonusReason };
+};
+
 // Get all tasks
 const getAllTasks = async (req, res) => {
   try {
@@ -820,13 +856,17 @@ const submitTask = async (req, res) => {
     const { id } = req.params;
     const { submission_link, submission_notes } = req.body;
 
-    // Find user's assignment for this task
+    // Find user's assignment for this task with task and community
     const assignment = await TaskAssignment.findOne({
       where: {
         task_id: parseInt(id),
         user_id: req.user.user_id
       },
-      include: [{ model: Task, as: 'task' }]
+      include: [{ 
+        model: Task, 
+        as: 'task',
+        include: [{ model: Community, as: 'community', attributes: ['community_id', 'name'] }]
+      }]
     });
 
     if (!assignment) {
@@ -909,7 +949,10 @@ const reviewTaskSubmission = async (req, res) => {
       return res.status(400).json({ message: 'Action must be either "approve" or "reject"' });
     }
 
-    const task = await Task.findByPk(id);
+    const task = await Task.findByPk(id, {
+      include: [{ model: Community, as: 'community', attributes: ['community_id', 'name'] }]
+    });
+    
     if (!task) {
       return res.status(404).json({ message: 'Task not found' });
     }
@@ -953,6 +996,11 @@ const reviewTaskSubmission = async (req, res) => {
       { where: { task_id: parseInt(id) } }
     );
 
+    // Variables to store points info (used in response)
+    let pointsBreakdown = [];
+    let pointsToAward = 0;
+    let bonusReason = null;
+
     // Award points if task is approved
     if (action === 'approve') {
       // Get all users assigned to this task
@@ -961,11 +1009,15 @@ const reviewTaskSubmission = async (req, res) => {
         include: [{ model: User, as: 'user' }]
       });
 
-      // Award points to each assigned user
-      const pointsToAward = 10; // Standard points for task completion
+      // Calculate gamified points
+      const pointsResult = calculateTaskPoints(task);
+      pointsToAward = pointsResult.points;
+      bonusReason = pointsResult.bonusReason;
+      
       const { Contribution } = require('../models');
 
       const assigneeIds = [];
+      
       for (const assignment of assignments) {
         assigneeIds.push(assignment.user_id);
         
@@ -975,14 +1027,32 @@ const reviewTaskSubmission = async (req, res) => {
           where: { user_id: assignment.user_id }
         });
 
-        // Create contribution record
+        // Create contribution record with gamified points
+        const priorityEmoji = {
+          'low': '⭐',
+          'medium': '⭐⭐',
+          'high': '⭐⭐⭐',
+          'urgent': '⭐⭐⭐⭐'
+        };
+        
+        const description = bonusReason 
+          ? `${priorityEmoji[task.priority]} Completed ${task.priority} priority task: ${task.title} (${pointsToAward} pts - ${bonusReason})`
+          : `${priorityEmoji[task.priority]} Completed ${task.priority} priority task: ${task.title} (${pointsToAward} pts)`;
+        
         await Contribution.create({
           user_id: assignment.user_id,
           task_id: parseInt(id),
           community_id: task.community_id,
           type: 'task_completion',
           points: pointsToAward,
-          description: `Completed task: ${task.title}`
+          description: description
+        });
+        
+        pointsBreakdown.push({
+          user_id: assignment.user_id,
+          user_name: assignment.user.full_name,
+          points_earned: pointsToAward,
+          bonus: bonusReason || 'No bonus'
         });
       }
 
@@ -1019,6 +1089,15 @@ const reviewTaskSubmission = async (req, res) => {
 
     res.json({
       message: `Task ${action}d successfully`,
+      ...(action === 'approve' && { 
+        points_awarded: pointsBreakdown,
+        gamification: {
+          base_points: pointsToAward - (bonusReason ? (bonusReason.includes('10') ? 10 : 5) : 0),
+          priority: task.priority,
+          bonus: bonusReason || 'None',
+          total_points: pointsToAward
+        }
+      }),
       task: await Task.findByPk(id, {
         include: [
           { model: User, as: 'creator', attributes: ['user_id', 'full_name', 'email'] },

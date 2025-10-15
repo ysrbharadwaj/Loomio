@@ -118,15 +118,15 @@ const Dashboard = () => {
 
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6 p-6">
+    <div className="w-full max-w-7xl mx-auto space-y-4 sm:space-y-6">
       {/* Welcome Header */}
-      <div className="bg-white rounded-xl shadow-sm border p-6">
+      <div className="bg-white rounded-xl shadow-sm border p-4 sm:p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              Welcome back, {user?.full_name}!�
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1 sm:mb-2">
+              Welcome back, {user?.full_name}! 
             </h1>
-            <p className="text-gray-600">
+            <p className="text-sm sm:text-base text-gray-600">
               Here's an overview of your community activity
             </p>
           </div>
@@ -139,51 +139,51 @@ const Dashboard = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         {stats.map((stat) => (
           <div 
             key={stat.id} 
-            className="bg-white rounded-xl shadow-sm border p-6 hover:shadow-md transition-shadow duration-200"
+            className="bg-white rounded-xl shadow-sm border p-4 sm:p-6 hover:shadow-md transition-shadow duration-200"
           >
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <p className="text-sm font-medium text-gray-600 mb-1">
+                <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">
                   {stat.name}
                 </p>
-                <p className="text-2xl font-bold text-gray-900 mb-2">
+                <p className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
                   {stat.value}
                 </p>
                 <div className="flex items-center">
                   {stat.changeType === 'increase' ? (
-                    <ArrowUpIcon className="w-4 h-4 text-green-500 mr-1" />
+                    <ArrowUpIcon className="w-3 h-3 sm:w-4 sm:h-4 text-green-500 mr-1" />
                   ) : (
-                    <ArrowDownIcon className="w-4 h-4 text-red-500 mr-1" />
+                    <ArrowDownIcon className="w-3 h-3 sm:w-4 sm:h-4 text-red-500 mr-1" />
                   )}
-                  <span className={`text-sm font-medium ${
+                  <span className={`text-xs sm:text-sm font-medium ${
                     stat.changeType === 'increase' ? 'text-green-600' : 'text-red-600'
                   }`}>
                     {stat.change}
                   </span>
                 </div>
               </div>
-              <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                <stat.icon className="w-6 h-6 text-gray-600" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                <stat.icon className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" />
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
         {/* Recent Activity */}
         <div className="lg:col-span-2">
-          <div className="bg-white rounded-xl shadow-sm border p-6">
+          <div className="bg-white rounded-xl shadow-sm border p-4 sm:p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-gray-900 flex items-center">
-                <ChartBarIcon className="w-5 h-5 mr-2 text-gray-600" />
+              <h3 className="text-base sm:text-lg font-bold text-gray-900 flex items-center">
+                <ChartBarIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-gray-600" />
                 Recent Activity
               </h3>
-              <button className="text-primary-600 hover:text-primary-700 font-medium text-sm transition-colors duration-200">
+              <button className="text-primary-600 hover:text-primary-700 font-medium text-xs sm:text-sm transition-colors duration-200">
                 View All
               </button>
             </div>
@@ -225,11 +225,11 @@ const Dashboard = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Community Info */}
-          <div className="bg-white rounded-xl shadow-sm border p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-              <UserGroupIcon className="w-5 h-5 mr-2 text-gray-600" />
+          <div className="bg-white rounded-xl shadow-sm border p-4 sm:p-6">
+            <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-4 flex items-center">
+              <UserGroupIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-gray-600" />
               Communities ({user?.communities?.length || 0})
             </h3>
             {user?.communities && user.communities.length > 0 ? (
@@ -272,8 +272,8 @@ const Dashboard = () => {
           </div>
 
           {/* Quick Stats */}
-          <div className="bg-white rounded-xl shadow-sm border p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Summary</h3>
+          <div className="bg-white rounded-xl shadow-sm border p-4 sm:p-6">
+            <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-4">Summary</h3>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">Tasks Completed</span>

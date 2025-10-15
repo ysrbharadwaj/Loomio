@@ -11,6 +11,7 @@ const { validatePagination } = require('../middleware/validation');
 router.get('/', authenticateToken, validatePagination, getLeaderboard);
 
 // Get user's rank and stats
-router.get('/rank/:userId?', authenticateToken, getUserRank);
+router.get('/rank/:userId', authenticateToken, getUserRank);
+router.get('/rank', authenticateToken, getUserRank);
 
 module.exports = router;

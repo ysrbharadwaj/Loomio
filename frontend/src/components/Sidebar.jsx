@@ -8,11 +8,12 @@ import {
   CalendarDaysIcon,
   ChartBarIcon,
   CogIcon,
-  TrophyIcon
+  TrophyIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 import loomioLogo from '../assets/Loomio.png';
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, onClose }) => {
   const { user } = useAuth();
 
   const navigation = [
@@ -31,8 +32,31 @@ const Sidebar = () => {
   navigation.push({ name: 'Settings', href: '/settings', icon: CogIcon });
 
   return (
-    <div className="flex flex-col w-72 bg-slate-900 shadow-xl border-r border-slate-700 relative">
-      {/* Logo/Brand */}
+    <>
+      {/* Mobile overlay */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={onClose}
+        />
+      )}
+      
+      {/* Sidebar */}
+      <div className={`
+        flex flex-col w-72 bg-slate-900 shadow-xl border-r border-slate-700 
+        fixed lg:relative inset-y-0 left-0 z-50 
+        transform transition-transform duration-300 ease-in-out
+        ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+      `}>
+        {/* Mobile close button */}
+        <button
+          onClick={onClose}
+          className="lg:hidden absolute top-4 right-4 p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg z-10"
+        >
+          <XMarkIcon className="w-6 h-6" />
+        </button>
+
+        {/* Logo/Brand */}
       <div className="px-6 py-8 border-b border-slate-700">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 rounded-lg flex items-center justify-center">
@@ -75,6 +99,7 @@ const Sidebar = () => {
           <NavLink
             key={item.name}
             to={item.href}
+            onClick={() => onClose && onClose()}
             className={({ isActive }) =>
               `group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 ${
                 isActive
@@ -113,6 +138,7 @@ const Sidebar = () => {
             </div>
             <NavLink 
               to="/communities"
+              onClick={() => onClose && onClose()}
               className="text-xs text-primary-400 hover:text-primary-300 font-medium"
             >
               Join a Community →
@@ -120,7 +146,8 @@ const Sidebar = () => {
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 

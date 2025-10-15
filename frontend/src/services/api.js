@@ -111,7 +111,7 @@ export const notificationAPI = {
 export const analyticsAPI = {
   getPlatformAnalytics: () => api.get('/analytics/platform'),
   getCommunityAnalytics: (communityId) => api.get(`/analytics/community/${communityId}`),
-  getMyCommunityAnalytics: () => api.get('/analytics/my-community'),
+  getMyCommunityAnalytics: () => api.get('/analytics/my-community')
 };
 
 export default api;

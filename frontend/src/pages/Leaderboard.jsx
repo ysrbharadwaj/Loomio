@@ -88,25 +88,25 @@ const Leaderboard = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
+    <div className="w-full max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-6">
+      <div className="mb-6 sm:mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-              <TrophyIcon className="w-8 h-8 mr-3 text-yellow-500" />
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center">
+              <TrophyIcon className="w-6 h-6 sm:w-8 sm:h-8 mr-2 sm:mr-3 text-yellow-500" />
               Leaderboard
             </h1>
-            <p className="text-gray-600 mt-2">Top contributors in the community</p>
+            <p className="text-sm sm:text-base text-gray-600 mt-1 sm:mt-2">Top contributors in the community</p>
           </div>
 
           {/* Period Filter */}
-          <div className="flex items-center space-x-2 bg-white rounded-lg shadow-sm border p-1">
+          <div className="flex items-center space-x-1 sm:space-x-2 bg-white rounded-lg shadow-sm border p-1 overflow-x-auto">
             {['weekly', 'monthly', 'all-time'].map((p) => (
               <button
                 key={p}
                 onClick={() => setPeriod(p)}
-                className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
+                className={`px-3 sm:px-4 py-2 rounded-lg font-medium text-xs sm:text-sm transition-all whitespace-nowrap ${
                   period === p
                     ? 'bg-primary-600 text-white shadow-md'
                     : 'text-gray-600 hover:bg-gray-100'
@@ -120,26 +120,26 @@ const Leaderboard = () => {
 
         {/* Current User Rank */}
         {currentUserRank && (
-          <div className="bg-gradient-to-r from-primary-50 to-purple-50 rounded-xl p-6 border border-primary-200">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <div className="w-16 h-16 bg-primary-600 rounded-full flex items-center justify-center">
-                  <span className="text-2xl font-bold text-white">#{currentUserRank}</span>
+          <div className="bg-gradient-to-r from-primary-50 to-purple-50 rounded-xl p-4 sm:p-6 border border-primary-200">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between gap-4">
+              <div className="flex items-center space-x-3 sm:space-x-4">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary-600 rounded-full flex items-center justify-center">
+                  <span className="text-xl sm:text-2xl font-bold text-white">#{currentUserRank}</span>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Your Rank</p>
-                  <p className="text-2xl font-bold text-gray-900">{user?.full_name}</p>
-                  <p className="text-sm text-primary-600 font-medium">
+                  <p className="text-xs sm:text-sm text-gray-600">Your Rank</p>
+                  <p className="text-lg sm:text-2xl font-bold text-gray-900">{user?.full_name}</p>
+                  <p className="text-xs sm:text-sm text-primary-600 font-medium">
                     {getPointsDisplay(user?.points)} points
                   </p>
                 </div>
               </div>
               {user?.current_streak > 0 && (
-                <div className="flex items-center space-x-2 bg-white rounded-lg px-4 py-2 shadow-sm">
-                  <FireIcon className="w-5 h-5 text-orange-500" />
+                <div className="flex items-center space-x-2 bg-white rounded-lg px-3 sm:px-4 py-2 shadow-sm">
+                  <FireIcon className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />
                   <div>
                     <p className="text-xs text-gray-500">Streak</p>
-                    <p className="text-lg font-bold text-orange-600">{user.current_streak} days</p>
+                    <p className="text-base sm:text-lg font-bold text-orange-600">{user.current_streak} days</p>
                   </div>
                 </div>
               )}

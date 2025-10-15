@@ -153,28 +153,28 @@ const Communities = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       
-      <div className="relative z-10 max-w-7xl mx-auto space-y-6 p-6">
+      <div className="relative z-10 w-full max-w-7xl mx-auto space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="bg-white rounded-xl shadow-sm border p-8">
+        <div className="bg-white rounded-xl shadow-sm border p-4 sm:p-6 lg:p-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">
                 Communities
               </h1>
-              <p className="text-gray-600">
+              <p className="text-sm sm:text-base text-gray-600">
                 Connect with your community and collaborate on shared goals
               </p>
             </div>
             <div className="hidden md:block">
-              <div className="w-16 h-16 bg-primary-100 rounded-lg flex items-center justify-center">
-                <UserGroupIcon className="w-8 h-8 text-primary-600" />
+              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary-100 rounded-lg flex items-center justify-center">
+                <UserGroupIcon className="w-6 h-6 sm:w-8 sm:h-8 text-primary-600" />
               </div>
             </div>
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
           {(user?.role === 'platform_admin' || user?.role === 'community_admin') && (
             <button
               onClick={() => setShowCreateForm(true)}
@@ -220,7 +220,7 @@ const Communities = () => {
             </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {user.communities.map((community) => (
               <div key={community.community_id} className="bg-gray-50 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
@@ -228,13 +228,13 @@ const Communities = () => {
                     <div className="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center">
                       <UsersIcon className="w-4 h-4 text-primary-600" />
                     </div>
-                    <h3 className="font-semibold text-gray-900">{community.name}</h3>
+                    <h3 className="font-semibold text-sm sm:text-base text-gray-900">{community.name}</h3>
                   </div>
                   <div className="px-2 py-1 bg-gray-200 text-gray-600 rounded text-xs font-medium">
                     {community.community_code}
                   </div>
                 </div>
-                <p className="text-sm text-gray-600 mb-3">{community.description || 'No description'}</p>
+                <p className="text-xs sm:text-sm text-gray-600 mb-3 line-clamp-2">{community.description || 'No description'}</p>
                 <div className="flex items-center justify-between text-xs text-gray-500">
                   <div className="flex flex-col">
                     <span className="capitalize">{community.UserCommunity?.role?.replace('_', ' ')}</span>
@@ -258,8 +258,8 @@ const Communities = () => {
       )}
 
       {/* Available Communities */}
-      <div className="bg-white rounded-xl shadow-sm border p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">Available Communities</h2>
+      <div className="bg-white rounded-xl shadow-sm border p-4 sm:p-6">
+        <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6">Available Communities</h2>
         
         {isLoading ? (
           <div className="text-center py-12">
@@ -345,9 +345,9 @@ const Communities = () => {
 
       {/* Create Community Modal */}
       {showCreateForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-xl border p-6 w-full max-w-md">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Create New Community</h3>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-3 sm:p-4 z-50">
+          <div className="bg-white rounded-xl shadow-xl border p-4 sm:p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">Create New Community</h3>
             
             <form onSubmit={handleCreateCommunity} className="space-y-4">
               <div>
@@ -399,9 +399,9 @@ const Communities = () => {
 
       {/* Join Community Modal */}
       {showJoinForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-xl border p-6 w-full max-w-md">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Join Community</h3>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-3 sm:p-4 z-50">
+          <div className="bg-white rounded-xl shadow-xl border p-4 sm:p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">Join Community</h3>
             
             <form onSubmit={handleJoinCommunity} className="space-y-4">
               <div>

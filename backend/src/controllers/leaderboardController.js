@@ -43,13 +43,26 @@ const getLeaderboard = async (req, res) => {
 
     // Build user filter based on community
     let userFilter = {};
+    let communityUserIds = [];
     if (targetCommunityId) {
-      const communityUserIds = await UserCommunity.findAll({
+      const userCommunities = await UserCommunity.findAll({
         where: { community_id: targetCommunityId },
         attributes: ['user_id']
       });
+      communityUserIds = userCommunities.map(uc => uc.user_id);
+      
+      // If no users in community, return empty leaderboard
+      if (communityUserIds.length === 0) {
+        return res.json({
+          leaderboard: [],
+          currentUserRank: null,
+          period,
+          community_id: targetCommunityId
+        });
+      }
+      
       userFilter = {
-        user_id: { [Op.in]: communityUserIds.map(uc => uc.user_id) }
+        user_id: { [Op.in]: communityUserIds }
       };
     }
 
@@ -57,8 +70,9 @@ const getLeaderboard = async (req, res) => {
     let leaderboardData;
     
     if (period === 'all-time') {
-      // Use total points from users table
-      leaderboardData = await User.findAll({
+      // Use total points from users table - only for users in the community
+      // Calculate tasks_completed dynamically from TaskAssignment table
+      const usersWithTasks = await User.findAll({
         where: userFilter,
         attributes: [
           'user_id',
@@ -66,29 +80,36 @@ const getLeaderboard = async (req, res) => {
           'email',
           'role',
           'points',
-          'total_tasks_completed',
           'current_streak',
-          'longest_streak'
+          'longest_streak',
+          [sequelize.fn('COUNT', sequelize.col('assignedTasks.TaskAssignment.task_id')), 'tasks_completed']
         ],
+        include: [
+          {
+            model: Task,
+            as: 'assignedTasks',
+            through: {
+              where: { status: 'completed' },
+              attributes: []
+            },
+            attributes: [],
+            required: false
+          }
+        ],
+        group: ['User.user_id'],
         order: [['points', 'DESC']],
         limit: parseInt(limit),
-        include: targetCommunityId ? [{
-          model: Community,
-          as: 'communities',
-          where: { community_id: targetCommunityId },
-          through: { attributes: ['role'] },
-          attributes: ['community_id', 'name']
-        }] : []
+        subQuery: false
       });
 
-      leaderboardData = leaderboardData.map((user, index) => ({
+      leaderboardData = usersWithTasks.map((user, index) => ({
         rank: index + 1,
         user_id: user.user_id,
         full_name: user.full_name,
         email: user.email,
         role: user.role,
         points: user.points || 0,
-        tasks_completed: user.total_tasks_completed || 0,
+        tasks_completed: parseInt(user.dataValues.tasks_completed) || 0,
         current_streak: user.current_streak || 0,
         longest_streak: user.longest_streak || 0
       }));
@@ -98,6 +119,11 @@ const getLeaderboard = async (req, res) => {
         ...dateFilter,
         ...(targetCommunityId && { community_id: targetCommunityId })
       };
+      
+      // Also filter by community members if targetCommunityId is specified
+      if (communityUserIds.length > 0) {
+        contributionWhere.user_id = { [Op.in]: communityUserIds };
+      }
 
       const contributions = await Contribution.findAll({
         where: contributionWhere,
@@ -175,16 +201,31 @@ const getUserRank = async (req, res) => {
     const userId = req.params.userId || req.user.user_id;
     const { period = 'all-time' } = req.query;
 
-    const user = await User.findByPk(userId, {
+    // Get user with completed tasks count
+    const user = await User.findOne({
+      where: { user_id: userId },
       attributes: [
         'user_id',
         'full_name',
         'email',
         'points',
-        'total_tasks_completed',
         'current_streak',
-        'longest_streak'
-      ]
+        'longest_streak',
+        [sequelize.fn('COUNT', sequelize.col('assignedTasks.TaskAssignment.task_id')), 'tasks_completed']
+      ],
+      include: [
+        {
+          model: Task,
+          as: 'assignedTasks',
+          through: {
+            where: { status: 'completed' },
+            attributes: []
+          },
+          attributes: [],
+          required: false
+        }
+      ],
+      group: ['User.user_id']
     });
 
     if (!user) {
@@ -240,7 +281,7 @@ const getUserRank = async (req, res) => {
           full_name: user.full_name,
           email: user.email,
           points: user.points || 0,
-          tasks_completed: user.total_tasks_completed || 0,
+          tasks_completed: parseInt(user.dataValues.tasks_completed) || 0,
           current_streak: user.current_streak || 0,
           longest_streak: user.longest_streak || 0
         },

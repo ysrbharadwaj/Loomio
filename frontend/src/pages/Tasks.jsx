@@ -27,6 +27,7 @@ const Tasks = () => {
     max_assignees: 1
   });
   const [communityMembers, setCommunityMembers] = useState([]);
+  const [isFetchingMembers, setIsFetchingMembers] = useState(false);
   const [selectedCommunity, setSelectedCommunity] = useState(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -113,10 +114,15 @@ const Tasks = () => {
     try {
       if (!selectedCommunity?.community_id) return;
       
+      setIsFetchingMembers(true);
       const response = await api.get(`/communities/${selectedCommunity.community_id}/members`);
+      console.log('Fetched community members:', response.data.members); // Debug log
       setCommunityMembers(response.data.members || []);
     } catch (error) {
       console.error('Failed to fetch community members:', error);
+      setError('Failed to load community members');
+    } finally {
+      setIsFetchingMembers(false);
     }
   };
 
@@ -419,30 +425,31 @@ const Tasks = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="w-full max-w-7xl mx-auto space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="bg-white rounded-xl shadow-sm border p-8">
-          <div className="flex items-center justify-between">
+        <div className="bg-white rounded-xl shadow-sm border p-4 sm:p-6 lg:p-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">
                 Tasks
               </h1>
-              <p className="text-gray-600">
+              <p className="text-sm sm:text-base text-gray-600">
                 Manage your tasks and achieve your goals
               </p>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3 sm:space-x-4">
               {canCreateTasks() && (
                 <button
                   onClick={() => setShowCreateForm(true)}
-                  className="flex items-center px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors duration-200"
+                  className="flex items-center px-3 sm:px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors duration-200 text-sm"
                 >
                   <PlusIcon className="w-4 h-4 mr-2" />
-                  Create Task
+                  <span className="hidden sm:inline">Create Task</span>
+                  <span className="sm:hidden">New</span>
                 </button>
               )}
-              <div className="w-16 h-16 bg-primary-100 rounded-lg flex items-center justify-center">
-                <ClipboardDocumentListIcon className="w-8 h-8 text-primary-600" />
+              <div className="hidden sm:flex w-12 h-12 sm:w-16 sm:h-16 bg-primary-100 rounded-lg items-center justify-center">
+                <ClipboardDocumentListIcon className="w-6 h-6 sm:w-8 sm:h-8 text-primary-600" />
               </div>
             </div>
           </div>
@@ -560,7 +567,7 @@ const Tasks = () => {
                 )}
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 {tasks.map((task) => {
                   const userAssignment = task.assignees?.find(a => a.user_id === user.user_id);
                   const isAssignedToUser = !!userAssignment;
@@ -675,7 +682,7 @@ const Tasks = () => {
                   />
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Task Type
@@ -721,7 +728,7 @@ const Tasks = () => {
                       <label className="flex items-center">
                         <input
                           type="checkbox"
-                          checked={createForm.assigned_to.length === 0}
+                          // checked={createForm.assigned_to.length === 0}
                           onChange={(e) => {
                             if (e.target.checked) {
                               setCreateForm({ ...createForm, assigned_to: [] });
@@ -783,7 +790,7 @@ const Tasks = () => {
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1129,7 +1136,7 @@ const Tasks = () => {
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                 {/* Left Column - Task Details */}
                 <div className="space-y-6">
                   <div className="bg-gray-50 rounded-lg p-4">
@@ -1439,8 +1446,22 @@ const Tasks = () => {
 
                             {isAdmin && selectedTask.task_type === 'group' && currentAssigneeCount < (selectedTask.max_assignees || 1) && (
                               <button
-                                onClick={() => {
+                                onClick={async () => {
                                   setShowAssignUsersModal(true);
+                                  // Fetch community members when opening the modal using the task's community_id
+                                  if (selectedTask?.community_id) {
+                                    try {
+                                      setIsFetchingMembers(true);
+                                      const response = await api.get(`/communities/${selectedTask.community_id}/members`);
+                                      console.log('Fetched community members:', response.data.members);
+                                      setCommunityMembers(response.data.members || []);
+                                    } catch (error) {
+                                      console.error('Failed to fetch community members:', error);
+                                      setError('Failed to load community members');
+                                    } finally {
+                                      setIsFetchingMembers(false);
+                                    }
+                                  }
                                 }}
                                 className="px-3 py-2 text-sm bg-indigo-100 text-indigo-700 hover:bg-indigo-200 rounded-lg font-medium transition-colors"
                               >
@@ -1495,7 +1516,12 @@ const Tasks = () => {
               )}
 
               <div className="mb-6 max-h-64 overflow-y-auto border border-gray-200 rounded-lg">
-                {communityMembers && communityMembers.length > 0 ? (
+                {isFetchingMembers ? (
+                  <div className="p-8 text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto mb-2"></div>
+                    <p className="text-sm text-gray-500">Loading community members...</p>
+                  </div>
+                ) : communityMembers && communityMembers.length > 0 ? (
                   communityMembers
                     .filter(member => !selectedTask.assignees?.some(a => a.user_id === member.user_id))
                     .map(member => (

@@ -8,7 +8,6 @@ import {
   TrophyIcon,
   ArrowUpIcon,
   ArrowDownIcon,
-  EyeIcon,
   CheckCircleIcon,
   SparklesIcon,
   BuildingOffice2Icon,
@@ -52,6 +51,7 @@ const Analytics = () => {
       setIsLoading(false);
     }
   };
+
 
   if (!user || (user.role !== 'platform_admin' && user.role !== 'community_admin')) {
     return (
@@ -115,9 +115,9 @@ const Analytics = () => {
     }
 
     return (
-      <div className="mb-8">
-        <h3 className="text-lg font-bold text-gray-900 mb-4">{title}</h3>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
+      <div className="mb-6 sm:mb-8">
+        <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-4">{title}</h3>
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5">
           {statItems.map((stat, index) => (
             <div key={index} className="bg-white rounded-xl shadow-sm border p-6 hover:shadow-md transition-shadow duration-200">
               <div className="flex items-center justify-between">
@@ -317,7 +317,7 @@ const Analytics = () => {
                     {analytics.memberActivity && analytics.memberActivity.length > 0 ? 
                       analytics.memberActivity.map((member) => (
                         <div key={member.user_id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                          <div>
+                          <div className="flex-1">
                             <p className="font-medium text-gray-900">{member.full_name}</p>
                             <p className="text-sm text-gray-600">{member.email}</p>
                             <div className="flex items-center space-x-2 mt-1">

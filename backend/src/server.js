@@ -74,11 +74,11 @@ const startServer = async () => {
     require('./models');
     
     // Sync database (create tables if they don't exist)
-    // Disable foreign key checks temporarily to avoid constraint issues
-    await sequelize.query('SET FOREIGN_KEY_CHECKS = 0;');
-    await sequelize.sync({ alter: true });
-    await sequelize.query('SET FOREIGN_KEY_CHECKS = 1;');
-    console.log('✅ Database synchronized successfully.');
+    // TEMPORARILY DISABLED - Run migrations manually instead
+    // await sequelize.query('SET FOREIGN_KEY_CHECKS = 0;');
+    // await sequelize.sync({ alter: true });
+    // await sequelize.query('SET FOREIGN_KEY_CHECKS = 1;');
+    console.log('✅ Database models loaded (sync disabled - use migrations).');
     
     app.listen(PORT, () => {
       console.log(`🚀 Server is running on port ${PORT}`);

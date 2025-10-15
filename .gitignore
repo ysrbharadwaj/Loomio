@@ -43,6 +43,15 @@ Desktop.ini
 # Database files (if you don't want to track dumps)
 *.sql
 
+# Backup and old files
+*-old.jsx
+*-old.js
+*.backup
+*.bak
+
+# Test files
+test-*.js
+
 # Package lock files (optional - uncomment if you want to ignore them)
 # package-lock.json
 

@@ -96,7 +96,7 @@ Task.belongsToMany(TaskTag, {
   through: TaskTagAssignment,
   foreignKey: 'task_id',
   otherKey: 'tag_id',
-  as: 'tags'
+  as: 'taskTags'  // Changed from 'tags' to 'taskTags' to avoid collision
 });
 
 // TaskTagAssignment associations

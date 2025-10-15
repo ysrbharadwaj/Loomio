@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { BellIcon, UserCircleIcon, Cog6ToothIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
+import { BellIcon, UserCircleIcon, Cog6ToothIcon, ArrowRightOnRectangleIcon, Bars3Icon } from '@heroicons/react/24/outline';
 import { Menu, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import api from '../services/api';
 import loomioLogo from '../assets/Loomio.png';
 
-const Header = () => {
+const Header = ({ onMenuClick }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
@@ -69,10 +69,18 @@ const Header = () => {
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
-          {/* Logo/Brand */}
-          <div className="flex items-center space-x-3">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+        <div className="flex justify-between items-center h-16 sm:h-20">
+          {/* Mobile menu button */}
+          <button
+            onClick={onMenuClick}
+            className="lg:hidden p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
+          >
+            <Bars3Icon className="w-6 h-6" />
+          </button>
+
+          {/* Logo/Brand - Hidden on mobile, shown on larger screens */}
+          <div className="hidden sm:flex items-center space-x-3">
             <div className="w-10 h-10 rounded-lg flex items-center justify-center">
               <img src={loomioLogo} alt="Loomio" className="w-10 h-10 object-contain" />
             </div>
@@ -85,7 +93,7 @@ const Header = () => {
           </div>
 
           {/* Right side */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             {/* Notifications */}
             <div className="relative">
               <button
@@ -100,10 +108,10 @@ const Header = () => {
 
               {/* Notifications dropdown */}
               {showNotifications && (
-                <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
-                  <div className="p-4 border-b border-gray-200">
+                <div className="absolute right-0 mt-2 w-80 sm:w-96 max-w-[calc(100vw-2rem)] bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                  <div className="p-3 sm:p-4 border-b border-gray-200">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-semibold text-gray-900">Notifications</h3>
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-900">Notifications</h3>
                       <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
                         {notificationCount} new
                       </span>

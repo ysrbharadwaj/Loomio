@@ -131,21 +131,21 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto space-y-6">
+      <div className="w-full max-w-6xl mx-auto space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="bg-white rounded-xl shadow-sm border p-8">
+        <div className="bg-white rounded-xl shadow-sm border p-4 sm:p-6 lg:p-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">
                 Profile
               </h1>
-              <p className="text-gray-600">
+              <p className="text-sm sm:text-base text-gray-600">
                 Manage your account and preferences
               </p>
             </div>
             <div className="hidden md:block">
-              <div className="w-16 h-16 bg-primary-100 rounded-lg flex items-center justify-center">
-                <UserIcon className="w-8 h-8 text-primary-600" />
+              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary-100 rounded-lg flex items-center justify-center">
+                <UserIcon className="w-6 h-6 sm:w-8 sm:h-8 text-primary-600" />
               </div>
             </div>
           </div>

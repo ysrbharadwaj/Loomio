@@ -404,7 +404,7 @@ const getCommunityMembers = async (req, res) => {
         model: User,
         as: 'user',
         where: userWhereClause,
-        attributes: ['user_id', 'full_name', 'email', 'points', 'join_date', 'last_login']
+        attributes: ['user_id', 'full_name', 'email', 'points', 'join_date']
       }],
       limit: parseInt(limit),
       offset: parseInt(offset),
@@ -418,7 +418,6 @@ const getCommunityMembers = async (req, res) => {
       email: uc.user.email,
       points: uc.user.points,
       join_date: uc.user.join_date,
-      last_login: uc.user.last_login,
       role: uc.role,
       joined_at: uc.joined_at
     }));

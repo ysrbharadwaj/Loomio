@@ -8,7 +8,8 @@ const { authenticateToken } = require('../middleware/auth');
 const { validateId, validatePagination } = require('../middleware/validation');
 
 // Get user statistics
-router.get('/:userId?', authenticateToken, getUserStatistics);
+router.get('/:userId', authenticateToken, getUserStatistics);
+router.get('/', authenticateToken, getUserStatistics);
 
 // Get user activity timeline
 router.get('/:userId/activity', authenticateToken, validatePagination, getUserActivity);

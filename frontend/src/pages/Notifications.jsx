@@ -192,30 +192,31 @@ const Notifications = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="w-full max-w-4xl mx-auto space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="bg-white rounded-xl shadow-sm border p-6">
-          <div className="flex items-center justify-between">
+        <div className="bg-white rounded-xl shadow-sm border p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">
                 Notifications
               </h1>
-              <p className="text-gray-600">
+              <p className="text-sm sm:text-base text-gray-600">
                 Stay updated with your community activities
               </p>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3 sm:space-x-4">
               {unreadCount > 0 && (
                 <button
                   onClick={markAllAsRead}
-                  className="flex items-center px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors duration-200"
+                  className="flex items-center px-3 sm:px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors duration-200 text-sm"
                 >
                   <CheckIcon className="w-4 h-4 mr-2" />
-                  Mark All Read
+                  <span className="hidden sm:inline">Mark All Read</span>
+                  <span className="sm:hidden">Mark Read</span>
                 </button>
               )}
-              <div className="w-16 h-16 bg-primary-100 rounded-lg flex items-center justify-center">
-                <BellIcon className="w-8 h-8 text-primary-600" />
+              <div className="hidden sm:flex w-12 h-12 sm:w-16 sm:h-16 bg-primary-100 rounded-lg items-center justify-center">
+                <BellIcon className="w-6 h-6 sm:w-8 sm:h-8 text-primary-600" />
               </div>
             </div>
           </div>

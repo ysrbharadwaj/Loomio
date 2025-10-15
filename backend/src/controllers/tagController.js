@@ -215,7 +215,7 @@ const assignTagsToTask = async (req, res) => {
     const updatedTask = await Task.findByPk(taskId, {
       include: [{
         model: TaskTag,
-        as: 'tags',
+        as: 'taskTags',
         through: { attributes: [] }
       }]
     });

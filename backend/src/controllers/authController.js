@@ -106,9 +106,6 @@ const login = async (req, res) => {
     const token = generateToken(user.user_id);
     const refreshToken = generateRefreshToken(user.user_id);
 
-    // Update last login
-    await user.update({ last_login: new Date() });
-
     res.json({
       message: 'Login successful',
       token,

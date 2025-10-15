@@ -176,6 +176,40 @@ const validateId = [
   handleValidationErrors
 ];
 
+// User ID parameter validation
+const validateUserId = [
+  param('userId')
+    .notEmpty()
+    .withMessage('User ID is required')
+    .isNumeric()
+    .withMessage('User ID must be numeric')
+    .custom((value) => {
+      const numValue = parseInt(value, 10);
+      if (isNaN(numValue) || numValue < 1) {
+        throw new Error('User ID must be a positive integer');
+      }
+      return true;
+    }),
+  handleValidationErrors
+];
+
+// Community ID parameter validation
+const validateCommunityId = [
+  param('communityId')
+    .notEmpty()
+    .withMessage('Community ID is required')
+    .isNumeric()
+    .withMessage('Community ID must be numeric')
+    .custom((value) => {
+      const numValue = parseInt(value, 10);
+      if (isNaN(numValue) || numValue < 1) {
+        throw new Error('Community ID must be a positive integer');
+      }
+      return true;
+    }),
+  handleValidationErrors
+];
+
 // Pagination validation
 const validatePagination = [
   query('page')
@@ -199,5 +233,7 @@ module.exports = {
   validateLeaveRequest,
   validateAttendance,
   validateId,
+  validateUserId,
+  validateCommunityId,
   validatePagination
 };
