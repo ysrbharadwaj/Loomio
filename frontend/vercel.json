@@ -1,0 +1,6 @@
+{
+  "buildCommand": "npm run build",
+  "env": {
+    "VITE_API_URL": "https://loomio.onrender.com/api"
+  }
+}
