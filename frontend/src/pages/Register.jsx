@@ -17,9 +17,38 @@ const Register = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState({ score: 0, text: '', color: '' });
 
   const { register, isAuthenticated, isLoading, error, clearError } = useAuth();
   const navigate = useNavigate();
+
+  // Calculate password strength
+  const calculatePasswordStrength = (password) => {
+    if (!password) {
+      return { score: 0, text: '', color: '' };
+    }
+
+    let score = 0;
+    
+    // Length check
+    if (password.length >= 6) score += 1;
+    if (password.length >= 10) score += 1;
+    
+    // Character variety checks
+    if (/[a-z]/.test(password)) score += 1; // lowercase
+    if (/[A-Z]/.test(password)) score += 1; // uppercase
+    if (/[0-9]/.test(password)) score += 1; // numbers
+    if (/[^A-Za-z0-9]/.test(password)) score += 1; // special characters
+
+    // Determine strength level
+    if (score <= 2) {
+      return { score, text: 'Weak', color: 'bg-red-500' };
+    } else if (score <= 4) {
+      return { score, text: 'Medium', color: 'bg-yellow-500' };
+    } else {
+      return { score, text: 'Strong', color: 'bg-green-500' };
+    }
+  };
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -39,6 +68,11 @@ const Register = () => {
       ...prev,
       [name]: value
     }));
+    
+    // Update password strength if password field changes
+    if (name === 'password') {
+      setPasswordStrength(calculatePasswordStrength(value));
+    }
     
     // Clear error when user starts typing
     if (errors[name]) {
@@ -244,6 +278,32 @@ const Register = () => {
                   )}
                 </button>
               </div>
+              
+              {/* Password Strength Indicator */}
+              {formData.password && (
+                <div className="mt-2">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs text-gray-600">Password Strength:</span>
+                    <span className={`text-xs font-medium ${
+                      passwordStrength.text === 'Weak' ? 'text-red-600' :
+                      passwordStrength.text === 'Medium' ? 'text-yellow-600' :
+                      'text-green-600'
+                    }`}>
+                      {passwordStrength.text}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className={`h-2 rounded-full transition-all duration-300 ${passwordStrength.color}`}
+                      style={{ width: `${(passwordStrength.score / 6) * 100}%` }}
+                    ></div>
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Use 8+ characters with a mix of letters, numbers & symbols
+                  </p>
+                </div>
+              )}
+              
               {errors.password && <p className="mt-2 text-sm text-red-600">{errors.password}</p>}
             </div>
 
