@@ -712,7 +712,22 @@ const Tasks = () => {
                         min="1"
                         max="50"
                         value={createForm.max_assignees}
-                        onChange={(e) => setCreateForm({ ...createForm, max_assignees: parseInt(e.target.value) || 1 })}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value === '') {
+                            setCreateForm({ ...createForm, max_assignees: '' });
+                          } else {
+                            const numValue = parseInt(value);
+                            if (!isNaN(numValue) && numValue >= 1) {
+                              setCreateForm({ ...createForm, max_assignees: numValue });
+                            }
+                          }
+                        }}
+                        onBlur={(e) => {
+                          if (e.target.value === '' || parseInt(e.target.value) < 1) {
+                            setCreateForm({ ...createForm, max_assignees: 1 });
+                          }
+                        }}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                       />
                     </div>
