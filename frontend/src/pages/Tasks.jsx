@@ -1231,54 +1231,79 @@ const Tasks = () => {
                           const canReview = isAdmin && assignment?.status === 'submitted';
                           
                           return (
-                            <div key={assignee.user_id} className="flex items-center justify-between p-3 bg-white rounded border">
-                              <div className="flex items-center space-x-3 flex-1">
-                                <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
-                                  <span className="text-sm font-medium text-primary-600">
-                                    {assignee.full_name.charAt(0)}
-                                  </span>
-                                </div>
-                                <div className="flex-1">
-                                  <span className="font-medium text-gray-900">{assignee.full_name}</span>
-                                  {assignment?.status && (
-                                    <div className="flex items-center space-x-2 mt-1">
-                                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(assignment.status)}`}>
-                                        {assignment.status}
-                                      </span>
-                                      {assignment.submitted_at && (
-                                        <span className="text-xs text-gray-500">
-                                          Submitted {formatDate(assignment.submitted_at)}
+                            <div key={assignee.user_id} className="p-3 bg-white rounded border">
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center space-x-3 flex-1">
+                                  <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                                    <span className="text-sm font-medium text-primary-600">
+                                      {assignee.full_name.charAt(0)}
+                                    </span>
+                                  </div>
+                                  <div className="flex-1">
+                                    <span className="font-medium text-gray-900">{assignee.full_name}</span>
+                                    {assignment?.status && (
+                                      <div className="flex items-center space-x-2 mt-1">
+                                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(assignment.status)}`}>
+                                          {assignment.status}
                                         </span>
-                                      )}
-                                    </div>
+                                        {assignment.submitted_at && (
+                                          <span className="text-xs text-gray-500">
+                                            Submitted {formatDate(assignment.submitted_at)}
+                                          </span>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                                
+                                <div className="flex items-center space-x-2">
+                                  {/* Individual submission review button for group tasks */}
+                                  {canReview && selectedTask.task_type === 'group' && (
+                                    <button
+                                      onClick={() => {
+                                        setSelectedAssignment(assignee);
+                                        setIndividualReviewForm({ action: 'approve', review_notes: '' });
+                                        setShowIndividualReviewModal(true);
+                                      }}
+                                      className="px-3 py-1 text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg font-medium transition-colors flex items-center space-x-1"
+                                      title="Review this submission"
+                                    >
+                                      <span>Review</span>
+                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                      </svg>
+                                    </button>
+                                  )}
+                                  
+                                  {/* Show review status for reviewed assignments */}
+                                  {assignment?.status === 'completed' && (
+                                    <span className="text-xs text-green-600 font-medium">✓ Approved</span>
+                                  )}
+                                  {assignment?.status === 'rejected' && (
+                                    <span className="text-xs text-red-600 font-medium">✗ Rejected</span>
                                   )}
                                 </div>
                               </div>
                               
-                              {/* Individual submission review button for group tasks */}
-                              {canReview && selectedTask.task_type === 'group' && (
-                                <button
-                                  onClick={() => {
-                                    setSelectedAssignment(assignee);
-                                    setIndividualReviewForm({ action: 'approve', review_notes: '' });
-                                    setShowIndividualReviewModal(true);
-                                  }}
-                                  className="ml-2 px-3 py-1 text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg font-medium transition-colors flex items-center space-x-1"
-                                  title="Review this submission"
-                                >
-                                  <span>Review</span>
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                  </svg>
-                                </button>
-                              )}
-                              
-                              {/* Show review status for reviewed assignments */}
-                              {assignment?.status === 'completed' && (
-                                <span className="ml-2 text-xs text-green-600 font-medium">✓ Approved</span>
-                              )}
-                              {assignment?.status === 'rejected' && (
-                                <span className="ml-2 text-xs text-red-600 font-medium">✗ Rejected</span>
+                              {/* Show submission link and notes for admins if submitted */}
+                              {isAdmin && assignment?.submission_link && ['submitted', 'completed', 'rejected'].includes(assignment?.status) && (
+                                <div className="mt-2 pt-2 border-t border-gray-200">
+                                  <div className="text-xs text-gray-600 mb-1">Submission:</div>
+                                  <a 
+                                    href={assignment.submission_link} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="text-xs text-blue-600 hover:text-blue-800 hover:underline break-all"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    {assignment.submission_link}
+                                  </a>
+                                  {assignment.submission_notes && (
+                                    <p className="text-xs text-gray-600 mt-1 italic">
+                                      {assignment.submission_notes}
+                                    </p>
+                                  )}
+                                </div>
                               )}
                             </div>
                           );
