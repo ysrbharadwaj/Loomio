@@ -17,19 +17,19 @@ const Sidebar = ({ isOpen, onClose }) => {
   const { user } = useAuth();
 
   const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
-    { name: 'Communities', href: '/communities', icon: UserGroupIcon },
-    { name: 'Tasks', href: '/tasks', icon: ClipboardDocumentListIcon },
-    { name: 'Calendar', href: '/calendar', icon: CalendarDaysIcon },
-    { name: 'Leaderboard', href: '/leaderboard', icon: TrophyIcon },
+    { name: 'Dashboard', href: '/app/dashboard', icon: HomeIcon },
+    { name: 'Communities', href: '/app/communities', icon: UserGroupIcon },
+    { name: 'Tasks', href: '/app/tasks', icon: ClipboardDocumentListIcon },
+    { name: 'Calendar', href: '/app/calendar', icon: CalendarDaysIcon },
+    { name: 'Leaderboard', href: '/app/leaderboard', icon: TrophyIcon },
   ];
 
   // Add admin-only routes
   if (user?.role === 'platform_admin' || user?.role === 'community_admin') {
-    navigation.push({ name: 'Analytics', href: '/analytics', icon: ChartBarIcon });
+    navigation.push({ name: 'Analytics', href: '/app/analytics', icon: ChartBarIcon });
   }
 
-  navigation.push({ name: 'Settings', href: '/settings', icon: CogIcon });
+  navigation.push({ name: 'Settings', href: '/app/settings', icon: CogIcon });
 
   return (
     <>

@@ -97,9 +97,18 @@ const startServer = async () => {
     // Import all models to establish associations
     require('./models');
     
-    // Sync database (create tables if they don't exist)
-    await sequelize.sync({ alter: true });
-    console.log('✅ Database synced and tables created/updated.');
+    // Sync database settings:
+    // - Local Development: { force: false } prevents deadlocks, only creates missing tables
+    // - Production: DISABLE sync entirely and use migrations for schema changes
+    // 
+    // For production deployment:
+    // 1. Comment out the sync line below
+    // 2. Use proper database migrations (see /backend/migrations folder)
+    // 3. Run migrations manually or via CI/CD pipeline
+    //
+    // Current setting is safe for local development
+    await sequelize.sync({ force: false });
+    console.log('✅ Database synced and tables created.');
     
     app.listen(PORT, () => {
       console.log(`🚀 Server is running on port ${PORT}`);

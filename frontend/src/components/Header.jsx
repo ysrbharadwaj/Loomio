@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { BellIcon, UserCircleIcon, Cog6ToothIcon, ArrowRightOnRectangleIcon, Bars3Icon } from '@heroicons/react/24/outline';
+import { BellIcon, UserCircleIcon, Cog6ToothIcon, ArrowRightOnRectangleIcon, Bars3Icon, SunIcon, MoonIcon } from '@heroicons/react/24/outline';
 import { Menu, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import api from '../services/api';
@@ -9,6 +10,7 @@ import loomioLogo from '../assets/Loomio.png';
 
 const Header = ({ onMenuClick }) => {
   const { user, logout } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
@@ -68,13 +70,13 @@ const Header = ({ onMenuClick }) => {
   };
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
+    <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
         <div className="flex justify-between items-center h-16 sm:h-20">
           {/* Mobile menu button */}
           <button
             onClick={onMenuClick}
-            className="lg:hidden p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
+            className="lg:hidden p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
           >
             <Bars3Icon className="w-6 h-6" />
           </button>
@@ -85,15 +87,28 @@ const Header = ({ onMenuClick }) => {
               <img src={loomioLogo} alt="Loomio" className="w-10 h-10 object-contain" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
                 Loomio
               </h1>
-              <p className="text-xs text-gray-500">Community Hub</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Community Hub</p>
             </div>
           </div>
 
           {/* Right side */}
           <div className="flex items-center space-x-2 sm:space-x-4">
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+              aria-label="Toggle theme"
+            >
+              {isDark ? (
+                <SunIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+              ) : (
+                <MoonIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+              )}
+            </button>
+            
             {/* Notifications */}
             <div className="relative">
               <button
