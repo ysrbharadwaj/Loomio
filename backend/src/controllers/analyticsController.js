@@ -42,7 +42,7 @@ const getPlatformAnalytics = async (req, res) => {
         }
       }),
       Task.count({ where: { status: 'completed' } }),
-      Task.count({ where: { status: { [Op.in]: ['assigned', 'pending'] } } })
+      Task.count({ where: { status: { [Op.in]: ['not_started', 'in_progress', 'submitted'] } } })
     ]);
 
     // Get top communities by member count
@@ -241,7 +241,7 @@ const getCommunityAnalyticsData = async (communityId, res) => {
         Task.count({ where: { community_id: communityId } }),
         Event.count({ where: { community_id: communityId } }),
         Task.count({ where: { community_id: communityId, status: 'completed' } }),
-        Task.count({ where: { community_id: communityId, status: { [Op.in]: ['assigned', 'pending'] } } }),
+        Task.count({ where: { community_id: communityId, status: { [Op.in]: ['not_started', 'in_progress', 'submitted'] } } }),
         UserCommunity.count({
           where: { community_id: communityId },
           include: [{
