@@ -11,7 +11,7 @@ const Subtask = sequelize.define('Subtask', {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: 'Tasks',
+      model: 'tasks',
       key: 'task_id'
     }
   },
@@ -35,7 +35,7 @@ const Subtask = sequelize.define('Subtask', {
     type: DataTypes.INTEGER,
     allowNull: true,
     references: {
-      model: 'Users',
+      model: 'users',
       key: 'user_id'
     }
   },
@@ -43,7 +43,7 @@ const Subtask = sequelize.define('Subtask', {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: 'Users',
+      model: 'users',
       key: 'user_id'
     }
   },
@@ -59,7 +59,7 @@ const Subtask = sequelize.define('Subtask', {
     type: DataTypes.INTEGER,
     allowNull: true,
     references: {
-      model: 'Users',
+      model: 'users',
       key: 'user_id'
     }
   }

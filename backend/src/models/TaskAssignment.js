@@ -11,7 +11,7 @@ const TaskAssignment = sequelize.define('TaskAssignment', {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: 'Tasks',
+      model: 'tasks',
       key: 'task_id'
     }
   },
@@ -19,7 +19,7 @@ const TaskAssignment = sequelize.define('TaskAssignment', {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: 'Users',
+      model: 'users',
       key: 'user_id'
     }
   },
@@ -67,7 +67,7 @@ const TaskAssignment = sequelize.define('TaskAssignment', {
     type: DataTypes.INTEGER,
     allowNull: true,
     references: {
-      model: 'Users',
+      model: 'users',
       key: 'user_id'
     }
   }

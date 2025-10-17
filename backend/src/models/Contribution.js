@@ -11,7 +11,7 @@ const Contribution = sequelize.define('Contribution', {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: 'Users',
+      model: 'users',
       key: 'user_id'
     }
   },
@@ -19,7 +19,7 @@ const Contribution = sequelize.define('Contribution', {
     type: DataTypes.INTEGER,
     allowNull: true,
     references: {
-      model: 'Tasks',
+      model: 'tasks',
       key: 'task_id'
     }
   },
@@ -27,7 +27,7 @@ const Contribution = sequelize.define('Contribution', {
     type: DataTypes.INTEGER,
     allowNull: true,
     references: {
-      model: 'Events',
+      model: 'events',
       key: 'event_id'
     }
   },
@@ -58,7 +58,7 @@ const Contribution = sequelize.define('Contribution', {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: 'Communities',
+      model: 'communities',
       key: 'community_id'
     }
   }

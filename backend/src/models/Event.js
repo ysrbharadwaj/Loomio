@@ -39,7 +39,7 @@ const Event = sequelize.define('Event', {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: 'Users',
+      model: 'users',
       key: 'user_id'
     }
   },
@@ -47,7 +47,7 @@ const Event = sequelize.define('Event', {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: 'Communities',
+      model: 'communities',
       key: 'community_id'
     }
   },
