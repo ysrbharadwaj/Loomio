@@ -150,25 +150,25 @@ const Leaderboard = () => {
 
       {/* Error Message */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-          <p className="text-red-800">{error}</p>
+        <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
+          <p className="text-red-800 dark:text-red-300 font-semibold">{error}</p>
         </div>
       )}
 
       {/* Leaderboard List */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
         {leaderboard.length === 0 ? (
           <div className="text-center py-12">
-            <ChartBarIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+            <ChartBarIcon className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
             <p className="text-gray-500 dark:text-gray-400">No leaderboard data available</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-gray-100 dark:divide-gray-700">
             {leaderboard.map((entry, index) => (
               <div
                 key={entry.user_id}
-                className={`flex items-center justify-between p-5 hover:bg-gray-50 transition-colors ${
-                  entry.user_id === user?.user_id ? 'bg-primary-50' : ''
+                className={`flex items-center justify-between p-5 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
+                  entry.user_id === user?.user_id ? 'bg-primary-50 dark:bg-primary-900/30' : ''
                 }`}
               >
                 {/* Rank and User Info */}
@@ -177,10 +177,10 @@ const Leaderboard = () => {
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-2">
-                      <p className="font-semibold text-gray-900 dark:text-white truncate">
+                      <p className="font-bold text-gray-900 dark:text-white truncate">
                         {entry.full_name}
                         {entry.user_id === user?.user_id && (
-                          <span className="ml-2 text-xs bg-primary-100 text-primary-700 px-2 py-0.5 rounded-full">
+                          <span className="ml-2 text-xs bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300 px-2 py-0.5 rounded-full font-bold">
                             You
                           </span>
                         )}
@@ -189,7 +189,7 @@ const Leaderboard = () => {
                         <StarIcon className="w-5 h-5 text-yellow-500 fill-yellow-500" />
                       )}
                     </div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{entry.email}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 truncate font-medium">{entry.email}</p>
                   </div>
                 </div>
 
@@ -197,8 +197,8 @@ const Leaderboard = () => {
                 <div className="flex items-center space-x-8">
                   {/* Points */}
                   <div className="text-right">
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Points</p>
-                    <p className="text-2xl font-bold text-primary-600">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 font-semibold">Points</p>
+                    <p className="text-2xl font-bold text-primary-600 dark:text-primary-400">
                       {getPointsDisplay(entry.points)}
                     </p>
                   </div>
@@ -206,8 +206,8 @@ const Leaderboard = () => {
                   {/* Tasks Completed (for all-time) */}
                   {period === 'all-time' && entry.tasks_completed !== undefined && (
                     <div className="text-right">
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Tasks</p>
-                      <p className="text-lg font-semibold text-gray-700 dark:text-gray-300">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 font-semibold">Tasks</p>
+                      <p className="text-lg font-bold text-gray-700 dark:text-gray-300">
                         {entry.tasks_completed || 0}
                       </p>
                     </div>
@@ -216,8 +216,8 @@ const Leaderboard = () => {
                   {/* Contributions (for period-based) */}
                   {period !== 'all-time' && entry.contributions !== undefined && (
                     <div className="text-right">
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Contributions</p>
-                      <p className="text-lg font-semibold text-gray-700 dark:text-gray-300">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 font-semibold">Contributions</p>
+                      <p className="text-lg font-bold text-gray-700 dark:text-gray-300">
                         {entry.contributions || 0}
                       </p>
                     </div>
@@ -225,9 +225,9 @@ const Leaderboard = () => {
 
                   {/* Streak */}
                   {entry.current_streak > 0 && (
-                    <div className="flex items-center space-x-1 text-orange-600">
+                    <div className="flex items-center space-x-1 text-orange-600 dark:text-orange-400">
                       <FireIcon className="w-5 h-5" />
-                      <span className="font-semibold">{entry.current_streak}</span>
+                      <span className="font-bold">{entry.current_streak}</span>
                     </div>
                   )}
                 </div>

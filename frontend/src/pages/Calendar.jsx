@@ -199,17 +199,17 @@ const Calendar = () => {
                     return (
                       <div
                         key={index}
-                        className={`min-h-[120px] p-2 border border-gray-100 rounded-lg transition-all ${
-                          date ? 'bg-white hover:bg-gray-50' : 'bg-gray-50'
-                        } ${isToday(date) ? 'ring-2 ring-primary-500 bg-primary-50' : ''} ${
-                          hasUserTasks ? 'ring-1 ring-green-300 bg-green-50' : ''
+                        className={`min-h-[120px] p-2 border border-gray-100 dark:border-gray-700 rounded-lg transition-all ${
+                          date ? 'bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700' : 'bg-gray-50 dark:bg-gray-900'
+                        } ${isToday(date) ? 'ring-2 ring-primary-500 bg-primary-50 dark:bg-primary-900/30' : ''} ${
+                          hasUserTasks ? 'ring-1 ring-green-300 dark:ring-green-700 bg-green-50 dark:bg-green-900/20' : ''
                         }`}
                       >
                         {date && (
                           <>
                             <div className="flex items-center justify-between mb-1">
-                              <span className={`text-sm font-medium ${
-                                isToday(date) ? 'text-primary-600' : hasUserTasks ? 'text-green-700' : 'text-gray-900'
+                              <span className={`text-sm font-bold ${
+                                isToday(date) ? 'text-primary-600 dark:text-primary-400' : hasUserTasks ? 'text-green-700 dark:text-green-400' : 'text-gray-900 dark:text-white'
                               }`}>
                                 {date.getDate()}
                               </span>
@@ -223,10 +223,10 @@ const Calendar = () => {
                               {dayTasks.slice(0, 1).map(task => (
                                 <div
                                   key={task.task_id}
-                                  className="text-xs p-1 rounded text-white bg-green-600 border-2 border-green-700"
+                                  className="text-xs p-1 rounded text-white bg-green-600 dark:bg-green-700 border-2 border-green-700 dark:border-green-600"
                                 >
                                   <div className="font-bold truncate">📋 {task.title}</div>
-                                  <div className="opacity-90">Your task</div>
+                                  <div className="opacity-90 font-medium">Your task</div>
                                 </div>
                               ))}
                             </div>
@@ -238,14 +238,14 @@ const Calendar = () => {
                                   key={event.id}
                                   className={`text-xs p-1 rounded text-white ${getEventTypeColor(event.type)}`}
                                 >
-                                  <div className="font-medium truncate">{event.title}</div>
-                                  <div className="opacity-90">{event.time || 'All day'}</div>
+                                  <div className="font-bold truncate">{event.title}</div>
+                                  <div className="opacity-90 font-medium">{event.time || 'All day'}</div>
                                 </div>
                               ))}
                               
                               {/* Show overflow count */}
                               {(dayTasks.length > 1 || dayEvents.length > (hasUserTasks ? 1 : 2)) && (
-                                <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                                <div className="text-xs text-gray-600 dark:text-gray-400 font-bold">
                                   +{(dayTasks.length - 1) + (dayEvents.length - (hasUserTasks ? 1 : 2))} more
                                 </div>
                               )}

@@ -43,7 +43,7 @@ const Sidebar = ({ isOpen, onClose }) => {
       
       {/* Sidebar */}
       <div className={`
-        flex flex-col w-72 bg-white dark:bg-gray-900 shadow-xl border-r border-gray-200 dark:border-gray-700 
+        flex flex-col w-72 bg-white dark:bg-gray-900 shadow-xl border-r border-gray-200 dark:border-gray-800
         fixed lg:relative inset-y-0 left-0 z-50 
         transform transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
@@ -57,7 +57,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         </button>
 
         {/* Logo/Brand */}
-      <div className="px-6 py-8 border-b border-gray-200 dark:border-gray-700">
+      <div className="px-6 py-8 border-b border-gray-200 dark:border-gray-800">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 rounded-lg flex items-center justify-center">
             <img src={loomioLogo} alt="Loomio" className="w-10 h-10 object-contain" />
@@ -72,7 +72,7 @@ const Sidebar = ({ isOpen, onClose }) => {
       </div>
 
       {/* User info */}
-      <div className="px-6 py-6 border-b border-gray-200 dark:border-gray-700">
+      <div className="px-6 py-6 border-b border-gray-200 dark:border-gray-800">
         <div className="flex items-center space-x-3">
           <div className="h-12 w-12 bg-primary-100 dark:bg-primary-900 rounded-lg flex items-center justify-center">
             <span className="text-lg font-bold text-primary-700 dark:text-primary-300">

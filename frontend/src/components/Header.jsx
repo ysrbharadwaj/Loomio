@@ -123,11 +123,11 @@ const Header = ({ onMenuClick }) => {
 
               {/* Notifications dropdown */}
               {showNotifications && (
-                <div className="absolute right-0 mt-2 w-80 sm:w-96 max-w-[calc(100vw-2rem)] bg-white rounded-lg shadow-lg border border-gray-200 z-50">
-                  <div className="p-3 sm:p-4 border-b border-gray-200">
+                <div className="absolute right-0 mt-2 w-80 sm:w-96 max-w-[calc(100vw-2rem)] bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50">
+                  <div className="p-3 sm:p-4 border-b border-gray-200 dark:border-gray-700">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-base sm:text-lg font-semibold text-gray-900">Notifications</h3>
-                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                      <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">Notifications</h3>
+                      <span className="text-xs text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full font-semibold">
                         {notificationCount} new
                       </span>
                     </div>
@@ -136,31 +136,31 @@ const Header = ({ onMenuClick }) => {
                     {isLoading ? (
                       <div className="p-8 text-center">
                         <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-500 mx-auto mb-2"></div>
-                        <p className="text-sm text-gray-500">Loading notifications...</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Loading notifications...</p>
                       </div>
                     ) : notifications.length === 0 ? (
-                      <div className="p-8 text-center text-gray-500">
-                        <BellIcon className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                      <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+                        <BellIcon className="w-8 h-8 mx-auto mb-2 text-gray-400 dark:text-gray-500" />
                         <p className="text-sm">No notifications yet</p>
                       </div>
                     ) : (
                       notifications.map((notification) => (
                         <div 
                           key={notification.notification_id}
-                          className="p-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors duration-200"
+                          className="p-4 border-b border-gray-100 dark:border-gray-700 last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
                         >
                           <div className="flex items-start space-x-3">
                             <div className={`w-2 h-2 rounded-full mt-2 ${
-                              !notification.is_read ? 'bg-primary-500' : 'bg-gray-300'
+                              !notification.is_read ? 'bg-primary-500' : 'bg-gray-300 dark:bg-gray-600'
                             }`}></div>
                             <div className="flex-1">
-                              <p className="font-medium text-gray-900 text-sm">
+                              <p className="font-bold text-gray-900 dark:text-white text-sm">
                                 {notification.title}
                               </p>
-                              <p className="text-gray-600 text-sm mt-1">
+                              <p className="text-gray-600 dark:text-gray-300 text-sm mt-1">
                                 {notification.message}
                               </p>
-                              <p className="text-gray-400 text-xs mt-2">
+                              <p className="text-gray-400 dark:text-gray-500 text-xs mt-2">
                                 {formatTimeAgo(notification.created_at)}
                               </p>
                             </div>
@@ -169,10 +169,10 @@ const Header = ({ onMenuClick }) => {
                       ))
                     )}
                   </div>
-                  <div className="p-4 border-t border-gray-200">
+                  <div className="p-4 border-t border-gray-200 dark:border-gray-700">
                     <button 
                       onClick={handleViewAllNotifications}
-                      className="w-full text-center text-primary-600 hover:text-primary-700 font-medium text-sm transition-colors duration-200"
+                      className="w-full text-center text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-bold text-sm transition-colors duration-200"
                     >
                       View All Notifications
                     </button>
@@ -184,16 +184,16 @@ const Header = ({ onMenuClick }) => {
             {/* User menu */}
             <Menu as="div" className="relative">
               <div>
-                <Menu.Button className="flex items-center text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 hover:bg-gray-50 transition-all duration-200 p-2">
+                <Menu.Button className="flex items-center text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 p-2">
                   <span className="sr-only">Open user menu</span>
-                  <div className="w-10 h-10 bg-gray-600 rounded-lg flex items-center justify-center">
-                    <span className="text-sm font-medium text-white">
+                  <div className="w-10 h-10 bg-primary-600 dark:bg-primary-700 rounded-lg flex items-center justify-center">
+                    <span className="text-sm font-bold text-white">
                       {user?.full_name?.charAt(0)?.toUpperCase()}
                     </span>
                   </div>
                   <div className="ml-3 text-left hidden sm:block">
-                    <p className="text-gray-900 font-semibold text-sm">{user?.full_name}</p>
-                    <p className="text-secondary-500 text-xs capitalize">
+                    <p className="text-gray-900 dark:text-white font-bold text-sm">{user?.full_name}</p>
+                    <p className="text-gray-600 dark:text-gray-400 text-xs capitalize font-medium">
                       {user?.role?.replace('_', ' ')}
                     </p>
                   </div>
@@ -208,19 +208,19 @@ const Header = ({ onMenuClick }) => {
                 leaveFrom="transform opacity-100 scale-100"
                 leaveTo="transform opacity-0 scale-95"
               >
-                <Menu.Items className="origin-top-right absolute right-0 mt-2 w-56 rounded-2xl shadow-2xl py-2 bg-white/95 backdrop-blur-lg border border-white/20 ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
-                  <div className="px-4 py-3 border-b border-secondary-200">
-                    <p className="text-sm font-semibold text-secondary-900">{user?.full_name}</p>
-                    <p className="text-xs text-secondary-500">{user?.email}</p>
+                <Menu.Items className="origin-top-right absolute right-0 mt-2 w-56 rounded-2xl shadow-2xl py-2 bg-white dark:bg-gray-800 backdrop-blur-lg border border-gray-200 dark:border-gray-700 ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                  <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                    <p className="text-sm font-bold text-gray-900 dark:text-white">{user?.full_name}</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">{user?.email}</p>
                   </div>
                   
                   <Menu.Item>
                     {({ active }) => (
                       <Link
-                        to="/profile"
+                        to="/app/profile"
                         className={`${
-                          active ? 'bg-primary-50 text-primary-700' : 'text-gray-700'
-                        } flex items-center px-4 py-3 text-sm transition-colors duration-200`}
+                          active ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400' : 'text-gray-700 dark:text-gray-300'
+                        } flex items-center px-4 py-3 text-sm font-semibold transition-colors duration-200`}
                       >
                         <UserCircleIcon className="w-5 h-5 mr-3" />
                         Your Profile
@@ -231,10 +231,10 @@ const Header = ({ onMenuClick }) => {
                   <Menu.Item>
                     {({ active }) => (
                       <Link
-                        to="/settings"
+                        to="/app/settings"
                         className={`${
-                          active ? 'bg-primary-50 text-primary-700' : 'text-gray-700'
-                        } flex items-center px-4 py-3 text-sm transition-colors duration-200`}
+                          active ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400' : 'text-gray-700 dark:text-gray-300'
+                        } flex items-center px-4 py-3 text-sm font-semibold transition-colors duration-200`}
                       >
                         <Cog6ToothIcon className="w-5 h-5 mr-3" />
                         Settings
@@ -242,15 +242,15 @@ const Header = ({ onMenuClick }) => {
                     )}
                   </Menu.Item>
                   
-                  <div className="border-t border-secondary-200 my-1"></div>
+                  <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
                   
                   <Menu.Item>
                     {({ active }) => (
                       <button
                         onClick={handleLogout}
                         className={`${
-                          active ? 'bg-error-50 text-error-700' : 'text-secondary-700'
-                        } flex items-center w-full px-4 py-3 text-sm transition-colors duration-200`}
+                          active ? 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400' : 'text-gray-700 dark:text-gray-300'
+                        } flex items-center w-full px-4 py-3 text-sm font-semibold transition-colors duration-200`}
                       >
                         <ArrowRightOnRectangleIcon className="w-5 h-5 mr-3" />
                         Sign out
