@@ -98,7 +98,10 @@ const Register = () => {
     const result = await register(formData);
     setIsSubmitting(false);
     
-    if (!result.success) {
+    if (result.success) {
+      // Registration successful - user is now logged in, redirect to dashboard
+      navigate('/dashboard');
+    } else {
       setErrors({ general: result.error });
     }
   };
