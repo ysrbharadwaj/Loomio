@@ -65,8 +65,8 @@ const Leaderboard = () => {
       );
     } else {
       return (
-        <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-full">
-          <span className="text-lg font-bold text-gray-600">#{rank}</span>
+        <div className="flex items-center justify-center w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-full">
+          <span className="text-lg font-bold text-gray-600 dark:text-gray-300">#{rank}</span>
         </div>
       );
     }
@@ -81,7 +81,7 @@ const Leaderboard = () => {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading leaderboard...</p>
+          <p className="text-gray-600 dark:text-gray-300">Loading leaderboard...</p>
         </div>
       </div>
     );
@@ -93,15 +93,15 @@ const Leaderboard = () => {
       <div className="mb-6 sm:mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white flex items-center">
               <TrophyIcon className="w-6 h-6 sm:w-8 sm:h-8 mr-2 sm:mr-3 text-yellow-500" />
               Leaderboard
             </h1>
-            <p className="text-sm sm:text-base text-gray-600 mt-1 sm:mt-2">Top contributors in the community</p>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mt-1 sm:mt-2">Top contributors in the community</p>
           </div>
 
           {/* Period Filter */}
-          <div className="flex items-center space-x-1 sm:space-x-2 bg-white rounded-lg shadow-sm border p-1 overflow-x-auto">
+          <div className="flex items-center space-x-1 sm:space-x-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm border p-1 overflow-x-auto">
             {['weekly', 'monthly', 'all-time'].map((p) => (
               <button
                 key={p}
@@ -127,18 +127,18 @@ const Leaderboard = () => {
                   <span className="text-xl sm:text-2xl font-bold text-white">#{currentUserRank}</span>
                 </div>
                 <div>
-                  <p className="text-xs sm:text-sm text-gray-600">Your Rank</p>
-                  <p className="text-lg sm:text-2xl font-bold text-gray-900">{user?.full_name}</p>
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">Your Rank</p>
+                  <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">{user?.full_name}</p>
                   <p className="text-xs sm:text-sm text-primary-600 font-medium">
                     {getPointsDisplay(user?.points)} points
                   </p>
                 </div>
               </div>
               {user?.current_streak > 0 && (
-                <div className="flex items-center space-x-2 bg-white rounded-lg px-3 sm:px-4 py-2 shadow-sm">
+                <div className="flex items-center space-x-2 bg-white dark:bg-gray-800 rounded-lg px-3 sm:px-4 py-2 shadow-sm">
                   <FireIcon className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />
                   <div>
-                    <p className="text-xs text-gray-500">Streak</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Streak</p>
                     <p className="text-base sm:text-lg font-bold text-orange-600">{user.current_streak} days</p>
                   </div>
                 </div>
@@ -156,11 +156,11 @@ const Leaderboard = () => {
       )}
 
       {/* Leaderboard List */}
-      <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border overflow-hidden">
         {leaderboard.length === 0 ? (
           <div className="text-center py-12">
             <ChartBarIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500">No leaderboard data available</p>
+            <p className="text-gray-500 dark:text-gray-400">No leaderboard data available</p>
           </div>
         ) : (
           <div className="divide-y divide-gray-100">
@@ -177,7 +177,7 @@ const Leaderboard = () => {
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-2">
-                      <p className="font-semibold text-gray-900 truncate">
+                      <p className="font-semibold text-gray-900 dark:text-white truncate">
                         {entry.full_name}
                         {entry.user_id === user?.user_id && (
                           <span className="ml-2 text-xs bg-primary-100 text-primary-700 px-2 py-0.5 rounded-full">
@@ -189,7 +189,7 @@ const Leaderboard = () => {
                         <StarIcon className="w-5 h-5 text-yellow-500 fill-yellow-500" />
                       )}
                     </div>
-                    <p className="text-sm text-gray-500 truncate">{entry.email}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{entry.email}</p>
                   </div>
                 </div>
 
@@ -197,7 +197,7 @@ const Leaderboard = () => {
                 <div className="flex items-center space-x-8">
                   {/* Points */}
                   <div className="text-right">
-                    <p className="text-sm text-gray-500">Points</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Points</p>
                     <p className="text-2xl font-bold text-primary-600">
                       {getPointsDisplay(entry.points)}
                     </p>
@@ -206,8 +206,8 @@ const Leaderboard = () => {
                   {/* Tasks Completed (for all-time) */}
                   {period === 'all-time' && entry.tasks_completed !== undefined && (
                     <div className="text-right">
-                      <p className="text-sm text-gray-500">Tasks</p>
-                      <p className="text-lg font-semibold text-gray-700">
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Tasks</p>
+                      <p className="text-lg font-semibold text-gray-700 dark:text-gray-300">
                         {entry.tasks_completed || 0}
                       </p>
                     </div>
@@ -216,8 +216,8 @@ const Leaderboard = () => {
                   {/* Contributions (for period-based) */}
                   {period !== 'all-time' && entry.contributions !== undefined && (
                     <div className="text-right">
-                      <p className="text-sm text-gray-500">Contributions</p>
-                      <p className="text-lg font-semibold text-gray-700">
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Contributions</p>
+                      <p className="text-lg font-semibold text-gray-700 dark:text-gray-300">
                         {entry.contributions || 0}
                       </p>
                     </div>
@@ -238,7 +238,7 @@ const Leaderboard = () => {
       </div>
 
       {/* Footer Note */}
-      <div className="mt-6 text-center text-sm text-gray-500">
+      <div className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
         <p>Rankings are updated in real-time based on points earned from tasks and contributions</p>
       </div>
     </div>

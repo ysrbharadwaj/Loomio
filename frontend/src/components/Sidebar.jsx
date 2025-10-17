@@ -43,7 +43,7 @@ const Sidebar = ({ isOpen, onClose }) => {
       
       {/* Sidebar */}
       <div className={`
-        flex flex-col w-72 bg-slate-900 shadow-xl border-r border-slate-700 
+        flex flex-col w-72 bg-white dark:bg-gray-900 shadow-xl border-r border-gray-200 dark:border-gray-700 
         fixed lg:relative inset-y-0 left-0 z-50 
         transform transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
@@ -51,42 +51,42 @@ const Sidebar = ({ isOpen, onClose }) => {
         {/* Mobile close button */}
         <button
           onClick={onClose}
-          className="lg:hidden absolute top-4 right-4 p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg z-10"
+          className="lg:hidden absolute top-4 right-4 p-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg z-10"
         >
           <XMarkIcon className="w-6 h-6" />
         </button>
 
         {/* Logo/Brand */}
-      <div className="px-6 py-8 border-b border-slate-700">
+      <div className="px-6 py-8 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 rounded-lg flex items-center justify-center">
             <img src={loomioLogo} alt="Loomio" className="w-10 h-10 object-contain" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-white">
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">
               Loomio
             </h1>
-            <p className="text-sm text-slate-400 font-medium">Community Hub</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Community Hub</p>
           </div>
         </div>
       </div>
 
       {/* User info */}
-      <div className="px-6 py-6 border-b border-slate-700">
+      <div className="px-6 py-6 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center space-x-3">
-          <div className="h-12 w-12 bg-slate-700 rounded-lg flex items-center justify-center">
-            <span className="text-lg font-semibold text-white">
+          <div className="h-12 w-12 bg-primary-100 dark:bg-primary-900 rounded-lg flex items-center justify-center">
+            <span className="text-lg font-bold text-primary-700 dark:text-primary-300">
               {user?.full_name?.charAt(0)?.toUpperCase()}
             </span>
           </div>
           <div className="flex-1">
-            <p className="text-sm font-semibold text-white">
+            <p className="text-sm font-bold text-gray-900 dark:text-white">
               {user?.full_name}
             </p>
-            <p className="text-xs text-slate-400 capitalize">
+            <p className="text-xs text-gray-600 dark:text-gray-400 capitalize font-medium">
               {user?.role?.replace('_', ' ')}
             </p>
-            <div className="flex items-center mt-1 text-xs text-slate-300">
+            <div className="flex items-center mt-1 text-xs text-primary-600 dark:text-primary-400 font-semibold">
               <span>{user?.points || 0} points</span>
             </div>
           </div>
@@ -101,10 +101,10 @@ const Sidebar = ({ isOpen, onClose }) => {
             to={item.href}
             onClick={() => onClose && onClose()}
             className={({ isActive }) =>
-              `group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 ${
+              `group flex items-center px-3 py-2.5 text-sm font-semibold rounded-lg transition-colors duration-200 ${
                 isActive
                   ? 'bg-primary-600 text-white'
-                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-primary-600 dark:hover:text-primary-400'
               }`
             }
           >
@@ -117,29 +117,29 @@ const Sidebar = ({ isOpen, onClose }) => {
       {/* Community info */}
       <div className="px-6 py-6 border-t border-slate-700">
         {user?.community ? (
-          <div className="bg-slate-800 rounded-lg p-4 border border-slate-600">
-            <div className="text-xs text-slate-400 uppercase tracking-wider font-medium mb-2">
+          <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+            <div className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold mb-2">
               Community
             </div>
-            <div className="text-sm font-semibold text-white mb-1">
+            <div className="text-sm font-bold text-gray-900 dark:text-white mb-1">
               {user.community.name}
             </div>
-            <div className="text-xs text-slate-400">
+            <div className="text-xs text-gray-600 dark:text-gray-400">
               {user.community.description || 'Active community member'}
             </div>
           </div>
         ) : (
-          <div className="bg-slate-800 rounded-lg p-4 border border-slate-600">
-            <div className="text-xs text-slate-400 uppercase tracking-wider font-medium mb-2">
+          <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+            <div className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold mb-2">
               Community
             </div>
-            <div className="text-xs text-slate-400 mb-2">
+            <div className="text-xs text-gray-600 dark:text-gray-400 mb-2">
               No community assigned
             </div>
             <NavLink 
               to="/communities"
               onClick={() => onClose && onClose()}
-              className="text-xs text-primary-400 hover:text-primary-300 font-medium"
+              className="text-xs text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-semibold"
             >
               Join a Community →
             </NavLink>

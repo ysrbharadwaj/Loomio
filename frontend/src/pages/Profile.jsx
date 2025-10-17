@@ -130,16 +130,16 @@ const Profile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-800">
       <div className="w-full max-w-6xl mx-auto space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="bg-white rounded-xl shadow-sm border p-4 sm:p-6 lg:p-8">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border p-4 sm:p-6 lg:p-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2">
                 Profile
               </h1>
-              <p className="text-sm sm:text-base text-gray-600">
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
                 Manage your account and preferences
               </p>
             </div>
@@ -166,7 +166,7 @@ const Profile = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Profile Avatar Card */}
-          <div className="bg-white rounded-xl shadow-sm border p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border p-6">
             <div className="text-center">
               <div className="w-24 h-24 bg-primary-600 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl font-bold text-white">
@@ -174,7 +174,7 @@ const Profile = () => {
                 </span>
               </div>
               
-              <h2 className="text-xl font-bold text-gray-900 mb-2">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                 {user?.full_name}
               </h2>
               
@@ -184,18 +184,18 @@ const Profile = () => {
                 </span>
               </div>
               
-              <div className="flex items-center justify-center p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center justify-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <TrophyIcon className="w-5 h-5 text-yellow-500 mr-2" />
-                <span className="font-semibold text-gray-900">{user?.points || 0} Points</span>
+                <span className="font-semibold text-gray-900 dark:text-white">{user?.points || 0} Points</span>
               </div>
             </div>
           </div>
 
           {/* Profile Information Card */}
-          <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border">
+          <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm border">
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h3 className="text-xl font-bold text-gray-900">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
                   Profile Information
                 </h3>
                 {!isEditing ? (
@@ -210,7 +210,7 @@ const Profile = () => {
                   <div className="flex space-x-3">
                     <button
                       onClick={handleCancel}
-                      className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-700 font-medium transition-colors"
+                      className="flex items-center px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-700 dark:text-gray-300 font-medium transition-colors"
                     >
                       <XMarkIcon className="w-4 h-4 mr-2" />
                       Cancel
@@ -231,7 +231,7 @@ const Profile = () => {
             <div className="p-6 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                  <label className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     <UserIcon className="w-4 h-4 mr-2" />
                     Full Name
                   </label>
@@ -244,14 +244,14 @@ const Profile = () => {
                       required
                     />
                   ) : (
-                    <div className="text-gray-900 font-medium">
+                    <div className="text-gray-900 dark:text-white font-medium">
                       {user?.full_name}
                     </div>
                   )}
                 </div>
 
                 <div>
-                  <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                  <label className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     <EnvelopeIcon className="w-4 h-4 mr-2" />
                     Email Address
                   </label>
@@ -264,34 +264,34 @@ const Profile = () => {
                       required
                     />
                   ) : (
-                    <div className="text-gray-900 font-medium">
+                    <div className="text-gray-900 dark:text-white font-medium">
                       {user?.email}
                     </div>
                   )}
                 </div>
 
                 <div>
-                  <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                  <label className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     <CalendarIcon className="w-4 h-4 mr-2" />
                     Member Since
                   </label>
-                  <div className="text-gray-900 font-medium">
+                  <div className="text-gray-900 dark:text-white font-medium">
                     {formatDate(user?.created_at)}
                   </div>
                 </div>
 
                 <div>
-                  <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                  <label className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     <UserGroupIcon className="w-4 h-4 mr-2" />
                     Communities
                   </label>
                   <div className="space-y-2">
                     {user?.communities && user.communities.length > 0 ? (
                       user.communities.map((community) => (
-                        <div key={community.community_id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div key={community.community_id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                           <div>
-                            <div className="font-medium text-gray-900">{community.name}</div>
-                            <div className="text-sm text-gray-500 capitalize">
+                            <div className="font-medium text-gray-900 dark:text-white">{community.name}</div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400 capitalize">
                               {community.UserCommunity?.role?.replace('_', ' ')} • Joined {formatDate(community.UserCommunity?.joined_at)}
                             </div>
                           </div>
@@ -306,7 +306,7 @@ const Profile = () => {
                         </div>
                       ))
                     ) : (
-                      <div className="text-gray-900 font-medium">No communities joined</div>
+                      <div className="text-gray-900 dark:text-white font-medium">No communities joined</div>
                     )}
                   </div>
                 </div>
@@ -315,10 +315,10 @@ const Profile = () => {
               {/* Password Change Section - Only when editing */}
               {isEditing && (
                 <div className="pt-6 border-t border-gray-200">
-                  <h4 className="text-lg font-semibold text-gray-900 mb-4">Change Password</h4>
+                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Change Password</h4>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Current Password
                       </label>
                       <input
@@ -330,7 +330,7 @@ const Profile = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         New Password
                       </label>
                       <input
@@ -342,7 +342,7 @@ const Profile = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Confirm New Password
                       </label>
                       <input
@@ -354,7 +354,7 @@ const Profile = () => {
                       />
                     </div>
                   </div>
-                  <p className="text-sm text-gray-500 mt-2">
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
                     Leave password fields blank if you don't want to change your password.
                   </p>
                 </div>

@@ -139,7 +139,7 @@ const Notifications = () => {
       case 'task_deleted':
         return (
           <div className={`${baseClass} bg-gray-100`}>
-            <ClipboardDocumentCheckIcon className="w-6 h-6 text-gray-600" />
+            <ClipboardDocumentCheckIcon className="w-6 h-6 text-gray-600 dark:text-gray-300" />
           </div>
         );
       case 'event_created':
@@ -167,7 +167,7 @@ const Notifications = () => {
       default:
         return (
           <div className={`${baseClass} bg-gray-100`}>
-            <BellIcon className="w-6 h-6 text-gray-600" />
+            <BellIcon className="w-6 h-6 text-gray-600 dark:text-gray-300" />
           </div>
         );
     }
@@ -191,16 +191,16 @@ const Notifications = () => {
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-800">
       <div className="w-full max-w-4xl mx-auto space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="bg-white rounded-xl shadow-sm border p-4 sm:p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2">
                 Notifications
               </h1>
-              <p className="text-sm sm:text-base text-gray-600">
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
                 Stay updated with your community activities
               </p>
             </div>
@@ -223,7 +223,7 @@ const Notifications = () => {
         </div>
 
         {/* Filter Tabs */}
-        <div className="bg-white rounded-xl shadow-sm border p-1">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border p-1">
           <div className="flex space-x-1">
             {[
               { key: 'all', label: 'All', count: notifications.length },
@@ -246,7 +246,7 @@ const Notifications = () => {
         </div>
 
         {/* Notifications List */}
-        <div className="bg-white rounded-xl shadow-sm border">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border">
           {error && (
             <div className="p-4 border-b border-red-200 bg-red-50">
               <p className="text-red-800">{error}</p>
@@ -256,13 +256,13 @@ const Notifications = () => {
           {isLoading ? (
             <div className="p-12 text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading notifications...</p>
+              <p className="text-gray-600 dark:text-gray-300">Loading notifications...</p>
             </div>
           ) : notifications.length === 0 ? (
             <div className="p-12 text-center">
               <BellIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No notifications</h3>
-              <p className="text-gray-600">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No notifications</h3>
+              <p className="text-gray-600 dark:text-gray-300">
                 {filter === 'all' 
                   ? "You don't have any notifications yet."
                   : `No ${filter} notifications.`
@@ -283,7 +283,7 @@ const Notifications = () => {
                       {getNotificationIcon(notification.type, notification.priority)}
                       <div className="flex-1">
                         <div className="flex items-center space-x-2 mb-1">
-                          <h3 className="text-base font-semibold text-gray-900">
+                          <h3 className="text-base font-semibold text-gray-900 dark:text-white">
                             {notification.title}
                           </h3>
                           {!notification.is_read && (
@@ -293,10 +293,10 @@ const Notifications = () => {
                           )}
                           {getPriorityBadge(notification.priority)}
                         </div>
-                        <p className="text-sm text-gray-700 mb-3 leading-relaxed">
+                        <p className="text-sm text-gray-700 dark:text-gray-300 mb-3 leading-relaxed">
                           {notification.message}
                         </p>
-                        <div className="flex items-center space-x-4 text-xs text-gray-500">
+                        <div className="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
                           <span className="flex items-center">
                             <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
