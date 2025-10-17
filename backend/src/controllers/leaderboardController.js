@@ -80,8 +80,6 @@ const getLeaderboard = async (req, res) => {
           'email',
           'role',
           'points',
-          'current_streak',
-          'longest_streak',
           [sequelize.fn('COUNT', sequelize.col('assignedTasks.TaskAssignment.task_id')), 'tasks_completed']
         ],
         include: [
@@ -109,9 +107,7 @@ const getLeaderboard = async (req, res) => {
         email: user.email,
         role: user.role,
         points: user.points || 0,
-        tasks_completed: parseInt(user.dataValues.tasks_completed) || 0,
-        current_streak: user.current_streak || 0,
-        longest_streak: user.longest_streak || 0
+        tasks_completed: parseInt(user.dataValues.tasks_completed) || 0
       }));
     } else {
       // Calculate points from contributions in the period
@@ -138,7 +134,7 @@ const getLeaderboard = async (req, res) => {
         include: [{
           model: User,
           as: 'user',
-          attributes: ['user_id', 'full_name', 'email', 'role', 'points', 'current_streak']
+          attributes: ['user_id', 'full_name', 'email', 'role', 'points']
         }]
       });
 
@@ -150,8 +146,7 @@ const getLeaderboard = async (req, res) => {
         role: contrib.user.role,
         points: parseInt(contrib.dataValues.period_points) || 0,
         total_points: contrib.user.points || 0,
-        contributions: parseInt(contrib.dataValues.period_contributions) || 0,
-        current_streak: contrib.user.current_streak || 0
+        contributions: parseInt(contrib.dataValues.period_contributions) || 0
       }));
     }
 
@@ -209,8 +204,6 @@ const getUserRank = async (req, res) => {
         'full_name',
         'email',
         'points',
-        'current_streak',
-        'longest_streak',
         [sequelize.fn('COUNT', sequelize.col('assignedTasks.TaskAssignment.task_id')), 'tasks_completed']
       ],
       include: [
@@ -281,9 +274,7 @@ const getUserRank = async (req, res) => {
           full_name: user.full_name,
           email: user.email,
           points: user.points || 0,
-          tasks_completed: parseInt(user.dataValues.tasks_completed) || 0,
-          current_streak: user.current_streak || 0,
-          longest_streak: user.longest_streak || 0
+          tasks_completed: parseInt(user.dataValues.tasks_completed) || 0
         },
         rank,
         communityRank,
