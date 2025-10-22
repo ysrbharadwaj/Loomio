@@ -411,9 +411,9 @@ const Tasks = () => {
       case 'cancelled':
         return <ExclamationTriangleIcon className="w-5 h-5 text-red-500" />;
       case 'not_started':
-        return <ClipboardDocumentListIcon className="w-5 h-5 text-gray-500" />;
+        return <ClipboardDocumentListIcon className="w-5 h-5 text-gray-500 dark:text-gray-400" />;
       default:
-        return <ClipboardDocumentListIcon className="w-5 h-5 text-gray-500" />;
+        return <ClipboardDocumentListIcon className="w-5 h-5 text-gray-500 dark:text-gray-400" />;
     }
   };
 
@@ -424,16 +424,16 @@ const Tasks = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-800">
       <div className="w-full max-w-7xl mx-auto space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="bg-white rounded-xl shadow-sm border p-4 sm:p-6 lg:p-8">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border p-4 sm:p-6 lg:p-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2">
                 Tasks
               </h1>
-              <p className="text-sm sm:text-base text-gray-600">
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
                 Manage your tasks and achieve your goals
               </p>
             </div>
@@ -472,8 +472,8 @@ const Tasks = () => {
         <div className="space-y-4">
           {/* Community Selector */}
           {user?.communities && user.communities.length > 1 && (
-            <div className="bg-white rounded-xl shadow-sm border p-4">
-              <label htmlFor="community-select" className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border p-4">
+              <label htmlFor="community-select" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Select Community
               </label>
               <select
@@ -497,7 +497,7 @@ const Tasks = () => {
           )}
 
           {/* Filter Tabs */}
-          <div className="bg-white rounded-xl shadow-sm border p-1">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border p-1">
             <div className="flex space-x-1">
               {[
                 { key: 'all', label: 'All Tasks' },
@@ -522,10 +522,10 @@ const Tasks = () => {
         </div>
 
         {!user?.communities || user.communities.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border p-12 text-center">
             <ClipboardDocumentListIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No Communities Found</h3>
-            <p className="text-gray-600 mb-6">You need to be part of a community to view and manage tasks.</p>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No Communities Found</h3>
+            <p className="text-gray-600 dark:text-gray-300 mb-6">You need to be part of a community to view and manage tasks.</p>
             <button
               onClick={() => window.location.href = '/communities'}
               className="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors"
@@ -534,24 +534,24 @@ const Tasks = () => {
             </button>
           </div>
         ) : !selectedCommunity ? (
-          <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border p-12 text-center">
             <ClipboardDocumentListIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Select a Community</h3>
-            <p className="text-gray-600 mb-6">Please select a community above to view and manage tasks.</p>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Select a Community</h3>
+            <p className="text-gray-600 dark:text-gray-300 mb-6">Please select a community above to view and manage tasks.</p>
           </div>
         ) : (
           /* Tasks List */
-          <div className="bg-white rounded-xl shadow-sm border">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border">
             {isLoading ? (
               <div className="p-12 text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto mb-4"></div>
-                <p className="text-gray-600">Loading tasks...</p>
+                <p className="text-gray-600 dark:text-gray-300">Loading tasks...</p>
               </div>
             ) : tasks.length === 0 ? (
               <div className="p-12 text-center">
                 <ClipboardDocumentListIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No tasks found</h3>
-                <p className="text-gray-600 mb-6">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No tasks found</h3>
+                <p className="text-gray-600 dark:text-gray-300 mb-6">
                   {filter === 'all' 
                     ? "No tasks have been created yet."
                     : `No ${filter.replace('_', ' ')} tasks found.`
@@ -577,7 +577,7 @@ const Tasks = () => {
                   return (
                     <div 
                       key={task.task_id} 
-                      className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all cursor-pointer"
+                      className="bg-white dark:bg-gray-800 border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all cursor-pointer"
                       onClick={() => {
                         setSelectedTask(task);
                         setShowTaskDetailModal(true);
@@ -597,7 +597,7 @@ const Tasks = () => {
                       </div>
 
                       {/* Title */}
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">
                         {task.title}
                       </h3>
 
@@ -606,7 +606,7 @@ const Tasks = () => {
                         <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(task.priority)}`}>
                           {task.priority}
                         </span>
-                        <div className="flex items-center text-sm text-gray-600">
+                        <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
                           <UserIcon className="w-4 h-4 mr-1" />
                           {task.task_type === 'group' 
                             ? `${currentAssigneeCount}/${task.max_assignees || 1}`
@@ -615,7 +615,7 @@ const Tasks = () => {
                       </div>
 
                       {/* Deadline */}
-                      <div className="flex items-center text-sm text-gray-500 mb-3">
+                      <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-3">
                         <CalendarIcon className="w-4 h-4 mr-1" />
                         <span className={isDeadlinePassed(task.deadline) ? 'text-red-600 font-medium' : ''}>
                           {formatDate(task.deadline)}
@@ -635,7 +635,7 @@ const Tasks = () => {
                         {isAdmin && (
                           <button
                             onClick={() => handleDeleteTask(task.task_id)}
-                            className="flex-1 px-3 py-1 text-sm bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-lg font-medium transition-colors"
+                            className="flex-1 px-3 py-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 rounded-lg font-medium transition-colors"
                           >
                             Delete
                           </button>
@@ -652,12 +652,12 @@ const Tasks = () => {
         {/* Create Task Modal */}
         {showCreateForm && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl shadow-xl border p-6 w-full max-w-2xl">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Create New Task</h3>
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl border p-6 w-full max-w-2xl">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Create New Task</h3>
               
               <form onSubmit={handleCreateTask} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Task Title *
                   </label>
                   <input
@@ -671,7 +671,7 @@ const Tasks = () => {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Description
                   </label>
                   <textarea
@@ -684,7 +684,7 @@ const Tasks = () => {
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Task Type
                     </label>
                     <select
@@ -704,7 +704,7 @@ const Tasks = () => {
 
                   {createForm.task_type === 'group' && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Max Assignees
                       </label>
                       <input
@@ -712,7 +712,22 @@ const Tasks = () => {
                         min="1"
                         max="50"
                         value={createForm.max_assignees}
-                        onChange={(e) => setCreateForm({ ...createForm, max_assignees: parseInt(e.target.value) || 1 })}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value === '') {
+                            setCreateForm({ ...createForm, max_assignees: '' });
+                          } else {
+                            const numValue = parseInt(value);
+                            if (!isNaN(numValue) && numValue >= 1) {
+                              setCreateForm({ ...createForm, max_assignees: numValue });
+                            }
+                          }
+                        }}
+                        onBlur={(e) => {
+                          if (e.target.value === '' || parseInt(e.target.value) < 1) {
+                            setCreateForm({ ...createForm, max_assignees: 1 });
+                          }
+                        }}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                       />
                     </div>
@@ -720,7 +735,7 @@ const Tasks = () => {
                 </div>
 
                 <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Assign To {createForm.task_type === 'group' ? '(Multiple Selection)' : ''}
                   </label>
                   <div className="border border-gray-300 rounded-lg p-2 max-h-40 overflow-y-auto">
@@ -736,7 +751,7 @@ const Tasks = () => {
                           }}
                           className="mr-2"
                         />
-                        <span className="text-sm text-gray-600">Leave Unassigned (Allow Self-Assignment)</span>
+                        <span className="text-sm text-gray-600 dark:text-gray-300">Leave Unassigned (Allow Self-Assignment)</span>
                       </label>
                     </div>
                     {communityMembers.map((member) => (
@@ -784,7 +799,7 @@ const Tasks = () => {
                     ))}
                   </div>
                   {createForm.task_type === 'group' && createForm.assigned_to.length > 0 && (
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       {createForm.assigned_to.length} of {createForm.max_assignees} assignees selected
                     </p>
                   )}
@@ -793,7 +808,7 @@ const Tasks = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Priority
                     </label>
                     <select
@@ -808,7 +823,7 @@ const Tasks = () => {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Due Date
                     </label>
                     <input
@@ -824,7 +839,7 @@ const Tasks = () => {
                   <button
                     type="button"
                     onClick={() => setShowCreateForm(false)}
-                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 transition-colors"
                   >
                     Cancel
                   </button>
@@ -844,8 +859,8 @@ const Tasks = () => {
         {/* Task Submission Modal */}
         {showSubmissionModal && selectedTask && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl shadow-xl border p-6 w-full max-w-2xl">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Submit Task: {selectedTask.title}</h3>
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl border p-6 w-full max-w-2xl">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Submit Task: {selectedTask.title}</h3>
               
               {isDeadlinePassed(selectedTask.deadline) && (
                 <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -857,7 +872,7 @@ const Tasks = () => {
               
               <form onSubmit={handleSubmitTask} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Submission Link (Optional)
                   </label>
                   <input
@@ -870,7 +885,7 @@ const Tasks = () => {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Submission Notes
                   </label>
                   <textarea
@@ -890,7 +905,7 @@ const Tasks = () => {
                       setSelectedTask(null);
                       setSubmissionForm({ submission_link: '', submission_notes: '' });
                     }}
-                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 transition-colors"
                   >
                     Cancel
                   </button>
@@ -910,14 +925,14 @@ const Tasks = () => {
         {/* Task Review Modal */}
         {showReviewModal && selectedTask && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl shadow-xl border p-6 w-full max-w-2xl">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Review Task: {selectedTask.title}</h3>
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl border p-6 w-full max-w-2xl">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Review Task: {selectedTask.title}</h3>
               
               {/* Task Submission Details */}
-              <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                <h4 className="font-medium text-gray-900 mb-2">Submission Details</h4>
+              <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <h4 className="font-medium text-gray-900 dark:text-white mb-2">Submission Details</h4>
                 {selectedTask.submission_notes && (
-                  <p className="text-gray-700 mb-2">{selectedTask.submission_notes}</p>
+                  <p className="text-gray-700 dark:text-gray-300 mb-2">{selectedTask.submission_notes}</p>
                 )}
                 {selectedTask.submission_link && (
                   <a 
@@ -929,14 +944,14 @@ const Tasks = () => {
                     View submission link →
                   </a>
                 )}
-                <p className="text-sm text-gray-500 mt-2">
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
                   Submitted: {formatDate(selectedTask.submitted_at)}
                 </p>
               </div>
               
               <form onSubmit={handleReviewTask} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Review Decision
                   </label>
                   <div className="space-y-2">
@@ -964,7 +979,7 @@ const Tasks = () => {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Review Notes
                   </label>
                   <textarea
@@ -983,7 +998,7 @@ const Tasks = () => {
                       setSelectedTask(null);
                       setReviewForm({ action: 'approve', review_notes: '' });
                     }}
-                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 transition-colors"
                   >
                     Cancel
                   </button>
@@ -1007,29 +1022,29 @@ const Tasks = () => {
         {/* Individual Assignment Review Modal */}
         {showIndividualReviewModal && selectedAssignment && selectedTask && (
           <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[60]">
-            <div className="bg-white rounded-xl shadow-xl border p-6 w-full max-w-2xl">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl border p-6 w-full max-w-2xl">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
                 Review Submission: {selectedAssignment.full_name}
               </h3>
               
-              <div className="mb-2 text-sm text-gray-600">
-                Task: <span className="font-medium text-gray-900">{selectedTask.title}</span>
+              <div className="mb-2 text-sm text-gray-600 dark:text-gray-300">
+                Task: <span className="font-medium text-gray-900 dark:text-white">{selectedTask.title}</span>
               </div>
               
               {/* Individual Submission Details */}
-              <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                <h4 className="font-medium text-gray-900 mb-2">Submission Details</h4>
+              <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <h4 className="font-medium text-gray-900 dark:text-white mb-2">Submission Details</h4>
                 {selectedAssignment.TaskAssignment?.submission_notes && (
                   <div className="mb-3">
-                    <span className="text-sm font-medium text-gray-600">Notes:</span>
-                    <p className="text-gray-700 mt-1 whitespace-pre-wrap">
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Notes:</span>
+                    <p className="text-gray-700 dark:text-gray-300 mt-1 whitespace-pre-wrap">
                       {selectedAssignment.TaskAssignment.submission_notes}
                     </p>
                   </div>
                 )}
                 {selectedAssignment.TaskAssignment?.submission_link && (
                   <div className="mb-3">
-                    <span className="text-sm font-medium text-gray-600">Link:</span>
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Link:</span>
                     <a 
                       href={selectedAssignment.TaskAssignment.submission_link} 
                       target="_blank" 
@@ -1041,7 +1056,7 @@ const Tasks = () => {
                   </div>
                 )}
                 {selectedAssignment.TaskAssignment?.submitted_at && (
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
                     Submitted: {formatDate(selectedAssignment.TaskAssignment.submitted_at)}
                   </p>
                 )}
@@ -1049,7 +1064,7 @@ const Tasks = () => {
               
               <form onSubmit={handleReviewIndividualAssignment} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Review Decision
                   </label>
                   <div className="space-y-2">
@@ -1077,7 +1092,7 @@ const Tasks = () => {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Review Notes (for {selectedAssignment.full_name})
                   </label>
                   <textarea
@@ -1096,7 +1111,7 @@ const Tasks = () => {
                       setSelectedAssignment(null);
                       setIndividualReviewForm({ action: 'approve', review_notes: '' });
                     }}
-                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 transition-colors"
                   >
                     Cancel
                   </button>
@@ -1120,15 +1135,15 @@ const Tasks = () => {
         {/* Task Detail Modal */}
         {showTaskDetailModal && selectedTask && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl shadow-xl border p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl border p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">{selectedTask.title}</h2>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{selectedTask.title}</h2>
                 <button
                   onClick={() => {
                     setShowTaskDetailModal(false);
                     setSelectedTask(null);
                   }}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  className="text-gray-400 hover:text-gray-600 dark:text-gray-300 transition-colors"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1139,26 +1154,26 @@ const Tasks = () => {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                 {/* Left Column - Task Details */}
                 <div className="space-y-6">
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Task Information</h3>
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Task Information</h3>
                     
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-600">Status:</span>
+                        <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Status:</span>
                         <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(selectedTask.status)}`}>
                           {selectedTask.status.replace('_', ' ')}
                         </span>
                       </div>
                       
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-600">Priority:</span>
+                        <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Priority:</span>
                         <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(selectedTask.priority)}`}>
                           {selectedTask.priority} priority
                         </span>
                       </div>
                       
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-600">Task Type:</span>
+                        <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Task Type:</span>
                         <span className={`px-2 py-1 text-xs font-medium rounded-full ${selectedTask.task_type === 'group' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'}`}>
                           {selectedTask.task_type === 'group' ? `Group (max: ${selectedTask.max_assignees || 1})` : 'Individual'}
                         </span>
@@ -1166,7 +1181,7 @@ const Tasks = () => {
                       
                       {selectedTask.deadline && (
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-gray-600">Deadline:</span>
+                          <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Deadline:</span>
                           <span className={isDeadlinePassed(selectedTask.deadline) ? 'text-red-600 font-medium' : 'text-gray-900'}>
                             {formatDate(selectedTask.deadline)}
                             {isDeadlinePassed(selectedTask.deadline) && ' (Overdue)'}
@@ -1176,35 +1191,35 @@ const Tasks = () => {
                       
                       {selectedTask.estimated_hours && (
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-gray-600">Estimated Hours:</span>
-                          <span className="text-gray-900">{selectedTask.estimated_hours}h</span>
+                          <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Estimated Hours:</span>
+                          <span className="text-gray-900 dark:text-white">{selectedTask.estimated_hours}h</span>
                         </div>
                       )}
                       
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-600">Created:</span>
-                        <span className="text-gray-900">{formatDate(selectedTask.created_at)}</span>
+                        <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Created:</span>
+                        <span className="text-gray-900 dark:text-white">{formatDate(selectedTask.created_at)}</span>
                       </div>
                       
                       {selectedTask.creator && (
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-gray-600">Created by:</span>
-                          <span className="text-gray-900">{selectedTask.creator.full_name}</span>
+                          <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Created by:</span>
+                          <span className="text-gray-900 dark:text-white">{selectedTask.creator.full_name}</span>
                         </div>
                       )}
                     </div>
                   </div>
 
                   {selectedTask.description && (
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-3">Description</h3>
-                      <p className="text-gray-700 whitespace-pre-wrap">{selectedTask.description}</p>
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Description</h3>
+                      <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{selectedTask.description}</p>
                     </div>
                   )}
 
                   {selectedTask.tags && selectedTask.tags.length > 0 && (
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-3">Tags</h3>
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Tags</h3>
                       <div className="flex flex-wrap gap-2">
                         {selectedTask.tags.map((tag, index) => (
                           <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
@@ -1219,8 +1234,8 @@ const Tasks = () => {
                 {/* Right Column - Assignment & Activity */}
                 <div className="space-y-6">
                   {/* Assignees */}
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
                       Assignees {selectedTask.task_type === 'group' && `(${selectedTask.assignees?.length || 0}/${selectedTask.max_assignees || 1})`}
                     </h3>
                     {selectedTask.assignees && selectedTask.assignees.length > 0 ? (
@@ -1231,77 +1246,102 @@ const Tasks = () => {
                           const canReview = isAdmin && assignment?.status === 'submitted';
                           
                           return (
-                            <div key={assignee.user_id} className="flex items-center justify-between p-3 bg-white rounded border">
-                              <div className="flex items-center space-x-3 flex-1">
-                                <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
-                                  <span className="text-sm font-medium text-primary-600">
-                                    {assignee.full_name.charAt(0)}
-                                  </span>
-                                </div>
-                                <div className="flex-1">
-                                  <span className="font-medium text-gray-900">{assignee.full_name}</span>
-                                  {assignment?.status && (
-                                    <div className="flex items-center space-x-2 mt-1">
-                                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(assignment.status)}`}>
-                                        {assignment.status}
-                                      </span>
-                                      {assignment.submitted_at && (
-                                        <span className="text-xs text-gray-500">
-                                          Submitted {formatDate(assignment.submitted_at)}
+                            <div key={assignee.user_id} className="p-3 bg-white dark:bg-gray-800 rounded border">
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center space-x-3 flex-1">
+                                  <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                                    <span className="text-sm font-medium text-primary-600">
+                                      {assignee.full_name.charAt(0)}
+                                    </span>
+                                  </div>
+                                  <div className="flex-1">
+                                    <span className="font-medium text-gray-900 dark:text-white">{assignee.full_name}</span>
+                                    {assignment?.status && (
+                                      <div className="flex items-center space-x-2 mt-1">
+                                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(assignment.status)}`}>
+                                          {assignment.status}
                                         </span>
-                                      )}
-                                    </div>
+                                        {assignment.submitted_at && (
+                                          <span className="text-xs text-gray-500 dark:text-gray-400">
+                                            Submitted {formatDate(assignment.submitted_at)}
+                                          </span>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                                
+                                <div className="flex items-center space-x-2">
+                                  {/* Individual submission review button for group tasks */}
+                                  {canReview && selectedTask.task_type === 'group' && (
+                                    <button
+                                      onClick={() => {
+                                        setSelectedAssignment(assignee);
+                                        setIndividualReviewForm({ action: 'approve', review_notes: '' });
+                                        setShowIndividualReviewModal(true);
+                                      }}
+                                      className="px-3 py-1 text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg font-medium transition-colors flex items-center space-x-1"
+                                      title="Review this submission"
+                                    >
+                                      <span>Review</span>
+                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                      </svg>
+                                    </button>
+                                  )}
+                                  
+                                  {/* Show review status for reviewed assignments */}
+                                  {assignment?.status === 'completed' && (
+                                    <span className="text-xs text-green-600 font-medium">✓ Approved</span>
+                                  )}
+                                  {assignment?.status === 'rejected' && (
+                                    <span className="text-xs text-red-600 font-medium">✗ Rejected</span>
                                   )}
                                 </div>
                               </div>
                               
-                              {/* Individual submission review button for group tasks */}
-                              {canReview && selectedTask.task_type === 'group' && (
-                                <button
-                                  onClick={() => {
-                                    setSelectedAssignment(assignee);
-                                    setIndividualReviewForm({ action: 'approve', review_notes: '' });
-                                    setShowIndividualReviewModal(true);
-                                  }}
-                                  className="ml-2 px-3 py-1 text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg font-medium transition-colors flex items-center space-x-1"
-                                  title="Review this submission"
-                                >
-                                  <span>Review</span>
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                  </svg>
-                                </button>
-                              )}
-                              
-                              {/* Show review status for reviewed assignments */}
-                              {assignment?.status === 'completed' && (
-                                <span className="ml-2 text-xs text-green-600 font-medium">✓ Approved</span>
-                              )}
-                              {assignment?.status === 'rejected' && (
-                                <span className="ml-2 text-xs text-red-600 font-medium">✗ Rejected</span>
+                              {/* Show submission link and notes for admins if submitted */}
+                              {isAdmin && assignment?.submission_link && ['submitted', 'completed', 'rejected'].includes(assignment?.status) && (
+                                <div className="mt-2 pt-2 border-t border-gray-200">
+                                  <div className="text-xs text-gray-600 dark:text-gray-300 mb-1">Submission:</div>
+                                  <a 
+                                    href={assignment.submission_link} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="text-xs text-blue-600 hover:text-blue-800 hover:underline break-all"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    {assignment.submission_link}
+                                  </a>
+                                  {assignment.submission_notes && (
+                                    <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 italic">
+                                      {assignment.submission_notes}
+                                    </p>
+                                  )}
+                                </div>
                               )}
                             </div>
                           );
                         })}
                       </div>
                     ) : (
-                      <p className="text-gray-500 text-sm">No assignees</p>
+                      <p className="text-gray-500 dark:text-gray-400 text-sm">No assignees</p>
                     )}
                   </div>
 
                   {/* Submission Details */}
                   {selectedTask.status === 'submitted' && (
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-3">Submission Details</h3>
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Submission Details</h3>
                       {selectedTask.submitted_at && (
                         <div className="mb-2">
-                          <span className="text-sm font-medium text-gray-600">Submitted on: </span>
-                          <span className="text-gray-900">{formatDate(selectedTask.submitted_at)}</span>
+                          <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Submitted on: </span>
+                          <span className="text-gray-900 dark:text-white">{formatDate(selectedTask.submitted_at)}</span>
                         </div>
                       )}
                       {selectedTask.submission_link && (
                         <div className="mb-2">
-                          <span className="text-sm font-medium text-gray-600">Link: </span>
+                          <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Link: </span>
                           <a href={selectedTask.submission_link} target="_blank" rel="noopener noreferrer" 
                              className="text-primary-600 hover:text-primary-800 underline">
                             {selectedTask.submission_link}
@@ -1310,8 +1350,8 @@ const Tasks = () => {
                       )}
                       {selectedTask.submission_notes && (
                         <div>
-                          <span className="text-sm font-medium text-gray-600">Notes: </span>
-                          <p className="text-gray-700 mt-1 whitespace-pre-wrap">{selectedTask.submission_notes}</p>
+                          <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Notes: </span>
+                          <p className="text-gray-700 dark:text-gray-300 mt-1 whitespace-pre-wrap">{selectedTask.submission_notes}</p>
                         </div>
                       )}
                     </div>
@@ -1319,14 +1359,14 @@ const Tasks = () => {
 
                   {/* Review Details */}
                   {['completed', 'rejected'].includes(selectedTask.status) && selectedTask.review_notes && (
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-3">Review</h3>
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Review</h3>
                       <div className={`p-3 border rounded-lg ${selectedTask.status === 'completed' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
                         <p className={`text-sm font-medium ${selectedTask.status === 'completed' ? 'text-green-800' : 'text-red-800'}`}>
                           {selectedTask.status === 'completed' ? 'Approved' : 'Rejected'}
                         </p>
                         {selectedTask.reviewed_at && (
-                          <p className="text-sm text-gray-600 mt-1">
+                          <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                             Reviewed on {formatDate(selectedTask.reviewed_at)}
                           </p>
                         )}
@@ -1338,8 +1378,8 @@ const Tasks = () => {
                   )}
 
                   {/* Action Buttons */}
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Actions</h3>
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Actions</h3>
                     <div className="flex flex-wrap gap-2">
                       {(() => {
                         const userAssignment = selectedTask.assignees?.find(a => a.user_id === user.user_id);
@@ -1482,15 +1522,15 @@ const Tasks = () => {
         {/* Assign Users Modal */}
         {showAssignUsersModal && selectedTask && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl shadow-xl border p-6 w-full max-w-md">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl border p-6 w-full max-w-md">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-gray-900">Assign Users to Task</h2>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Assign Users to Task</h2>
                 <button
                   onClick={() => {
                     setShowAssignUsersModal(false);
                     setSelectedUsersToAssign([]);
                   }}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  className="text-gray-400 hover:text-gray-600 dark:text-gray-300 transition-colors"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1499,11 +1539,11 @@ const Tasks = () => {
               </div>
 
               <div className="mb-4">
-                <p className="text-sm text-gray-600 mb-2">
-                  Task: <span className="font-semibold text-gray-900">{selectedTask.title}</span>
+                <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
+                  Task: <span className="font-semibold text-gray-900 dark:text-white">{selectedTask.title}</span>
                 </p>
-                <p className="text-sm text-gray-600">
-                  Available Slots: <span className="font-semibold text-gray-900">
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                  Available Slots: <span className="font-semibold text-gray-900 dark:text-white">
                     {(selectedTask.max_assignees || 1) - (selectedTask.assignees?.length || 0)}
                   </span>
                 </p>
@@ -1519,7 +1559,7 @@ const Tasks = () => {
                 {isFetchingMembers ? (
                   <div className="p-8 text-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto mb-2"></div>
-                    <p className="text-sm text-gray-500">Loading community members...</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Loading community members...</p>
                   </div>
                 ) : communityMembers && communityMembers.length > 0 ? (
                   communityMembers
@@ -1527,7 +1567,7 @@ const Tasks = () => {
                     .map(member => (
                       <label
                         key={member.user_id}
-                        className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                        className="flex items-center px-4 py-2 hover:bg-gray-50 dark:bg-gray-800 cursor-pointer border-b border-gray-100 last:border-b-0"
                       >
                         <input
                           type="checkbox"
@@ -1549,13 +1589,13 @@ const Tasks = () => {
                           className="mr-3 h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
                         />
                         <div className="flex-1">
-                          <p className="font-medium text-gray-900">{member.full_name}</p>
-                          <p className="text-xs text-gray-500">{member.email}</p>
+                          <p className="font-medium text-gray-900 dark:text-white">{member.full_name}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">{member.email}</p>
                         </div>
                       </label>
                     ))
                 ) : (
-                  <p className="text-gray-500 text-sm p-4 text-center">No available community members</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm p-4 text-center">No available community members</p>
                 )}
               </div>
 
@@ -1567,7 +1607,7 @@ const Tasks = () => {
                     setSelectedUsersToAssign([]);
                     setError('');
                   }}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 transition-colors"
                 >
                   Cancel
                 </button>

@@ -14,8 +14,8 @@ const getAllCommunities = async (req, res) => {
 
     if (search) {
       whereClause[Op.or] = [
-        { name: { [Op.like]: `%${search}%` } },
-        { description: { [Op.like]: `%${search}%` } }
+        { name: { [Op.iLike]: `%${search}%` } },
+        { description: { [Op.iLike]: `%${search}%` } }
       ];
     }
 

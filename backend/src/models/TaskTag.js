@@ -26,7 +26,7 @@ const TaskTag = sequelize.define('TaskTag', {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: 'Communities',
+      model: 'communities',
       key: 'community_id'
     }
   },
@@ -34,7 +34,7 @@ const TaskTag = sequelize.define('TaskTag', {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: 'Users',
+      model: 'users',
       key: 'user_id'
     }
   }

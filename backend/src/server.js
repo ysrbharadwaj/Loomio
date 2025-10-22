@@ -12,16 +12,40 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(helmet());
+
+// CORS Configuration
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  'http://localhost:3000',
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:5175',
+  'http://localhost:5176',
+  'https://loomio-omega.vercel.app',  // Production Vercel URL
+  /^http:\/\/localhost:\d+$/,  // Allow any localhost port
+  /^https:\/\/loomio.*\.vercel\.app$/  // Allow all Vercel preview deployments
+].filter(Boolean);
+
 app.use(cors({
-  origin: [
-    process.env.FRONTEND_URL || 'http://localhost:3000',
-    'http://localhost:5173',
-    'http://localhost:5174',
-    'http://localhost:5175',
-    'http://localhost:5176',
-    'http://localhost:3000',
-    /^http:\/\/localhost:\d+$/  // Allow any localhost port
-  ],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, Postman, or curl)
+    if (!origin) return callback(null, true);
+    
+    // Check if origin matches any allowed origin
+    const isAllowed = allowedOrigins.some(allowed => {
+      if (allowed instanceof RegExp) {
+        return allowed.test(origin);
+      }
+      return allowed === origin;
+    });
+    
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      console.warn(`CORS blocked origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 app.use(morgan('combined'));
@@ -50,7 +74,7 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Error handling middleware
+
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ 
@@ -73,12 +97,18 @@ const startServer = async () => {
     // Import all models to establish associations
     require('./models');
     
-    // Sync database (create tables if they don't exist)
-    // TEMPORARILY DISABLED - Run migrations manually instead
-    // await sequelize.query('SET FOREIGN_KEY_CHECKS = 0;');
-    // await sequelize.sync({ alter: true });
-    // await sequelize.query('SET FOREIGN_KEY_CHECKS = 1;');
-    console.log('✅ Database models loaded (sync disabled - use migrations).');
+    // Sync database settings:
+    // - Local Development: { force: false } prevents deadlocks, only creates missing tables
+    // - Production: DISABLE sync entirely and use migrations for schema changes
+    // 
+    // For production deployment:
+    // 1. Comment out the sync line below
+    // 2. Use proper database migrations (see /backend/migrations folder)
+    // 3. Run migrations manually or via CI/CD pipeline
+    //
+    // Current setting is safe for local development
+    await sequelize.sync({ force: false });
+    console.log('✅ Database synced and tables created.');
     
     app.listen(PORT, () => {
       console.log(`🚀 Server is running on port ${PORT}`);

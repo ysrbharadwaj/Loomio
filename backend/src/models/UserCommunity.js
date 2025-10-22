@@ -11,7 +11,7 @@ const UserCommunity = sequelize.define('UserCommunity', {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: 'Users',
+      model: 'users',
       key: 'user_id'
     }
   },
@@ -19,7 +19,7 @@ const UserCommunity = sequelize.define('UserCommunity', {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: 'Communities',
+      model: 'communities',
       key: 'community_id'
     }
   },

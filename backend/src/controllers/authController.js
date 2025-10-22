@@ -44,9 +44,19 @@ const register = async (req, res) => {
       community_id
     });
 
-    // Get user with community info
+    // Get user with communities info
     const userWithCommunity = await User.findByPk(user.user_id, {
-      include: [{ model: Community, as: 'community' }]
+      include: [
+        { 
+          model: Community, 
+          as: 'communities',
+          through: { 
+            where: { is_active: true },
+            attributes: ['role', 'joined_at']
+          },
+          required: false
+        }
+      ]
     });
 
     // Generate tokens

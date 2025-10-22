@@ -5,6 +5,19 @@ const sequelize = require('../config/database');
 const PDFDocument = require('pdfkit');
 const path = require('path');
 
+// Helper function to format dates for both MySQL and PostgreSQL
+const getDateFormat = (column, format) => {
+  const dialect = sequelize.getDialect();
+  if (dialect === 'postgres') {
+    // PostgreSQL uses TO_CHAR
+    const pgFormat = format.replace('%Y', 'YYYY').replace('%m', 'MM').replace('%d', 'DD');
+    return Sequelize.fn('TO_CHAR', column, pgFormat);
+  } else {
+    // MySQL uses DATE_FORMAT
+    return Sequelize.fn('DATE_FORMAT', column, format);
+  }
+};
+
 // Get platform-wide analytics (platform admin only)
 const getPlatformAnalytics = async (req, res) => {
   try {
@@ -42,7 +55,7 @@ const getPlatformAnalytics = async (req, res) => {
         }
       }),
       Task.count({ where: { status: 'completed' } }),
-      Task.count({ where: { status: { [Op.in]: ['assigned', 'pending'] } } })
+      Task.count({ where: { status: { [Op.in]: ['not_started', 'in_progress', 'submitted'] } } })
     ]);
 
     // Get top communities by member count
@@ -70,7 +83,7 @@ const getPlatformAnalytics = async (req, res) => {
     // Get user growth data for last 6 months
     const userGrowthData = await User.findAll({
       attributes: [
-        [Sequelize.fn('DATE_FORMAT', Sequelize.col('created_at'), '%Y-%m'), 'month'],
+        [getDateFormat(Sequelize.col('created_at'), '%Y-%m'), 'month'],
         [Sequelize.fn('COUNT', Sequelize.col('user_id')), 'count']
       ],
       where: {
@@ -78,24 +91,24 @@ const getPlatformAnalytics = async (req, res) => {
           [Op.gte]: new Date(Date.now() - 6 * 30 * 24 * 60 * 60 * 1000) // Last 6 months
         }
       },
-      group: [Sequelize.fn('DATE_FORMAT', Sequelize.col('created_at'), '%Y-%m')],
-      order: [[Sequelize.fn('DATE_FORMAT', Sequelize.col('created_at'), '%Y-%m'), 'ASC']]
+      group: [getDateFormat(Sequelize.col('created_at'), '%Y-%m')],
+      order: [[getDateFormat(Sequelize.col('created_at'), '%Y-%m'), 'ASC']]
     });
 
     // Get task completion rate over time
     const taskCompletionData = await Task.findAll({
       attributes: [
-        [Sequelize.fn('DATE_FORMAT', Sequelize.col('created_at'), '%Y-%m'), 'month'],
+        [getDateFormat(Sequelize.col('created_at'), '%Y-%m'), 'month'],
         [Sequelize.fn('COUNT', Sequelize.col('task_id')), 'totalTasks'],
-        [Sequelize.fn('SUM', Sequelize.literal('CASE WHEN status = "completed" THEN 1 ELSE 0 END')), 'completedTasks']
+        [Sequelize.fn('SUM', Sequelize.literal('CASE WHEN status = \'completed\' THEN 1 ELSE 0 END')), 'completedTasks']
       ],
       where: {
         created_at: {
           [Op.gte]: new Date(Date.now() - 6 * 30 * 24 * 60 * 60 * 1000) // Last 6 months
         }
       },
-      group: [Sequelize.fn('DATE_FORMAT', Sequelize.col('created_at'), '%Y-%m')],
-      order: [[Sequelize.fn('DATE_FORMAT', Sequelize.col('created_at'), '%Y-%m'), 'ASC']]
+      group: [getDateFormat(Sequelize.col('created_at'), '%Y-%m')],
+      order: [[getDateFormat(Sequelize.col('created_at'), '%Y-%m'), 'ASC']]
     });
 
     // Get top contributors
@@ -241,7 +254,7 @@ const getCommunityAnalyticsData = async (communityId, res) => {
         Task.count({ where: { community_id: communityId } }),
         Event.count({ where: { community_id: communityId } }),
         Task.count({ where: { community_id: communityId, status: 'completed' } }),
-        Task.count({ where: { community_id: communityId, status: { [Op.in]: ['assigned', 'pending'] } } }),
+        Task.count({ where: { community_id: communityId, status: { [Op.in]: ['not_started', 'in_progress', 'submitted'] } } }),
         UserCommunity.count({
           where: { community_id: communityId },
           include: [{
@@ -299,9 +312,9 @@ const getCommunityAnalyticsData = async (communityId, res) => {
       // Get task completion trend for last 3 months
       const taskTrend = await Task.findAll({
         attributes: [
-          [Sequelize.fn('DATE_FORMAT', Sequelize.col('created_at'), '%Y-%m-%d'), 'date'],
+          [getDateFormat(Sequelize.col('created_at'), '%Y-%m-%d'), 'date'],
           [Sequelize.fn('COUNT', Sequelize.col('task_id')), 'totalTasks'],
-          [Sequelize.fn('SUM', Sequelize.literal('CASE WHEN status = "completed" THEN 1 ELSE 0 END')), 'completedTasks']
+          [Sequelize.fn('SUM', Sequelize.literal('CASE WHEN status = \'completed\' THEN 1 ELSE 0 END')), 'completedTasks']
         ],
         where: {
           community_id: communityId,
@@ -309,8 +322,8 @@ const getCommunityAnalyticsData = async (communityId, res) => {
             [Op.gte]: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000) // Last 90 days
           }
         },
-        group: [Sequelize.fn('DATE_FORMAT', Sequelize.col('created_at'), '%Y-%m-%d')],
-        order: [[Sequelize.fn('DATE_FORMAT', Sequelize.col('created_at'), '%Y-%m-%d'), 'ASC']]
+        group: [getDateFormat(Sequelize.col('created_at'), '%Y-%m-%d')],
+        order: [[getDateFormat(Sequelize.col('created_at'), '%Y-%m-%d'), 'ASC']]
       });
 
       res.json({

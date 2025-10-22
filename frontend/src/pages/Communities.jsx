@@ -151,17 +151,17 @@ const Communities = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-800">
       
       <div className="relative z-10 w-full max-w-7xl mx-auto space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="bg-white rounded-xl shadow-sm border p-4 sm:p-6 lg:p-8">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border p-4 sm:p-6 lg:p-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2">
                 Communities
               </h1>
-              <p className="text-sm sm:text-base text-gray-600">
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
                 Connect with your community and collaborate on shared goals
               </p>
             </div>
@@ -186,7 +186,7 @@ const Communities = () => {
           )}
           <button
             onClick={() => setShowJoinForm(true)}
-            className="flex items-center justify-center px-6 py-3 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold rounded-lg transition-colors duration-200 shadow-sm"
+            className="flex items-center justify-center px-6 py-3 bg-white dark:bg-gray-800 border border-gray-300 hover:bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold rounded-lg transition-colors duration-200 shadow-sm"
           >
             <QrCodeIcon className="w-5 h-5 mr-2" />
             Join Community
@@ -212,30 +212,30 @@ const Communities = () => {
 
       {/* Your Communities */}
       {user?.communities && user.communities.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-gray-900">Your Communities</h2>
-            <div className="text-sm text-gray-500">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Your Communities</h2>
+            <div className="text-sm text-gray-500 dark:text-gray-400">
               {user.communities.length} joined
             </div>
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {user.communities.map((community) => (
-              <div key={community.community_id} className="bg-gray-50 rounded-lg p-4">
+              <div key={community.community_id} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center space-x-2">
                     <div className="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center">
                       <UsersIcon className="w-4 h-4 text-primary-600" />
                     </div>
-                    <h3 className="font-semibold text-sm sm:text-base text-gray-900">{community.name}</h3>
+                    <h3 className="font-semibold text-sm sm:text-base text-gray-900 dark:text-white">{community.name}</h3>
                   </div>
-                  <div className="px-2 py-1 bg-gray-200 text-gray-600 rounded text-xs font-medium">
+                  <div className="px-2 py-1 bg-gray-200 text-gray-600 dark:text-gray-300 rounded text-xs font-medium">
                     {community.community_code}
                   </div>
                 </div>
-                <p className="text-xs sm:text-sm text-gray-600 mb-3 line-clamp-2">{community.description || 'No description'}</p>
-                <div className="flex items-center justify-between text-xs text-gray-500">
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 mb-3 line-clamp-2">{community.description || 'No description'}</p>
+                <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
                   <div className="flex flex-col">
                     <span className="capitalize">{community.UserCommunity?.role?.replace('_', ' ')}</span>
                     <span>Joined {new Date(community.UserCommunity?.joined_at).toLocaleDateString()}</span>
@@ -258,19 +258,19 @@ const Communities = () => {
       )}
 
       {/* Available Communities */}
-      <div className="bg-white rounded-xl shadow-sm border p-4 sm:p-6">
-        <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6">Available Communities</h2>
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border p-4 sm:p-6">
+        <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6">Available Communities</h2>
         
         {isLoading ? (
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading communities...</p>
+            <p className="mt-4 text-gray-600 dark:text-gray-300">Loading communities...</p>
           </div>
         ) : communities.length === 0 ? (
           <div className="text-center py-12">
             <UserGroupIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">No communities available</h3>
-            <p className="text-gray-600 mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No communities available</h3>
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
               {(user?.role === 'platform_admin' || user?.role === 'community_admin') 
                 ? 'Be the first to create a community or get a code to join one.'
                 : 'Ask an admin to create a community or get a code to join an existing one.'
@@ -290,23 +290,23 @@ const Communities = () => {
             {communities.map((community) => (
               <div 
                 key={community.community_id}
-                className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200"
+                className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200"
               >
                 <div className="flex items-center justify-between mb-4">
                   <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
                     <UserGroupIcon className="w-5 h-5 text-primary-600" />
                   </div>
-                  <div className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs font-medium">
+                  <div className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded text-xs font-medium">
                     {community.community_code}
                   </div>
                 </div>
                 
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{community.name}</h3>
-                <p className="text-gray-600 text-sm mb-3 line-clamp-2">{community.description || 'No description provided'}</p>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{community.name}</h3>
+                <p className="text-gray-600 dark:text-gray-300 text-sm mb-3 line-clamp-2">{community.description || 'No description provided'}</p>
                 
                 {/* Creator information */}
                 {community.creator && (
-                  <div className="flex items-center text-sm text-gray-500 mb-3">
+                  <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-3">
                     <div className="w-6 h-6 bg-primary-100 rounded-full flex items-center justify-center mr-2">
                       <span className="text-primary-600 text-xs font-medium">
                         {community.creator.full_name?.charAt(0)?.toUpperCase() || 'U'}
@@ -317,7 +317,7 @@ const Communities = () => {
                 )}
                 
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center text-sm text-gray-500">
+                  <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
                     <UsersIcon className="w-4 h-4 mr-1" />
                     <span>{community.memberCount || 0} members</span>
                   </div>
@@ -346,12 +346,12 @@ const Communities = () => {
       {/* Create Community Modal */}
       {showCreateForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-3 sm:p-4 z-50">
-          <div className="bg-white rounded-xl shadow-xl border p-4 sm:p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">Create New Community</h3>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl border p-4 sm:p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4">Create New Community</h3>
             
             <form onSubmit={handleCreateCommunity} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Community Name
                 </label>
                 <input
@@ -365,7 +365,7 @@ const Communities = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Description (Optional)
                 </label>
                 <textarea
@@ -380,7 +380,7 @@ const Communities = () => {
                 <button
                   type="button"
                   onClick={() => setShowCreateForm(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 transition-colors"
                 >
                   Cancel
                 </button>
@@ -400,12 +400,12 @@ const Communities = () => {
       {/* Join Community Modal */}
       {showJoinForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-3 sm:p-4 z-50">
-          <div className="bg-white rounded-xl shadow-xl border p-4 sm:p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">Join Community</h3>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl border p-4 sm:p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4">Join Community</h3>
             
             <form onSubmit={handleJoinCommunity} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Community Code
                 </label>
                 <input
@@ -420,7 +420,7 @@ const Communities = () => {
                   maxLength="6"
                   required
                 />
-                <p className="text-xs text-gray-500 mt-2 text-center">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
                   Enter the 6-character code provided by your community admin
                 </p>
               </div>
@@ -429,7 +429,7 @@ const Communities = () => {
                 <button
                   type="button"
                   onClick={() => setShowJoinForm(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 transition-colors"
                 >
                   Cancel
                 </button>

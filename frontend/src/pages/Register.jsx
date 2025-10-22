@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import { useTheme } from '../context/ThemeContext';
+import { EyeIcon, EyeSlashIcon, SunIcon, MoonIcon } from '@heroicons/react/24/outline';
 import LoadingSpinner from '../components/LoadingSpinner';
 import loomioLogo from '../assets/Loomio.png';
 
@@ -17,13 +18,43 @@ const Register = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState({ score: 0, text: '', color: '' });
 
   const { register, isAuthenticated, isLoading, error, clearError } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
+
+  // Calculate password strength
+  const calculatePasswordStrength = (password) => {
+    if (!password) {
+      return { score: 0, text: '', color: '' };
+    }
+
+    let score = 0;
+    
+    // Length check
+    if (password.length >= 6) score += 1;
+    if (password.length >= 10) score += 1;
+    
+    // Character variety checks
+    if (/[a-z]/.test(password)) score += 1; // lowercase
+    if (/[A-Z]/.test(password)) score += 1; // uppercase
+    if (/[0-9]/.test(password)) score += 1; // numbers
+    if (/[^A-Za-z0-9]/.test(password)) score += 1; // special characters
+
+    // Determine strength level
+    if (score <= 2) {
+      return { score, text: 'Weak', color: 'bg-red-500' };
+    } else if (score <= 4) {
+      return { score, text: 'Medium', color: 'bg-yellow-500' };
+    } else {
+      return { score, text: 'Strong', color: 'bg-green-500' };
+    }
+  };
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/dashboard');
+      navigate('/app/dashboard');
     }
   }, [isAuthenticated, navigate]);
 
@@ -39,6 +70,11 @@ const Register = () => {
       ...prev,
       [name]: value
     }));
+    
+    // Update password strength if password field changes
+    if (name === 'password') {
+      setPasswordStrength(calculatePasswordStrength(value));
+    }
     
     // Clear error when user starts typing
     if (errors[name]) {
@@ -98,49 +134,67 @@ const Register = () => {
     const result = await register(formData);
     setIsSubmitting(false);
     
-    if (!result.success) {
+    if (result.success) {
+      // Registration successful - user is now logged in, redirect to dashboard
+      navigate('/app/dashboard');
+    } else {
       setErrors({ general: result.error });
     }
   };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-accent-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-300">
+      {/* Theme Toggle - Top Right */}
+      <div className="absolute top-4 right-4">
+        <button
+          onClick={toggleTheme}
+          className="p-2 text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors rounded-lg hover:bg-white dark:hover:bg-gray-800 shadow-lg"
+          aria-label="Toggle theme"
+        >
+          {isDark ? (
+            <SunIcon className="h-6 w-6" />
+          ) : (
+            <MoonIcon className="h-6 w-6" />
+          )}
+        </button>
+      </div>
+
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         {/* Header */}
         <div className="text-center">
           <div className="mx-auto h-16 w-16 rounded-xl flex items-center justify-center mb-6">
             <img src={loomioLogo} alt="Loomio" className="h-16 w-16 object-contain" />
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
             Create Account
           </h2>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-400">
             Join the Loomio community
           </p>
         </div>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow-sm rounded-xl border sm:px-10">
+        <div className="bg-white dark:bg-gray-800 py-8 px-4 shadow-xl rounded-xl border border-gray-200 dark:border-gray-700 sm:px-10 transition-colors duration-300">
           <form className="space-y-6" onSubmit={handleSubmit}>
             {/* General Error */}
             {errors.general && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <p className="text-red-800 text-sm">{errors.general}</p>
+              <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                <p className="text-red-800 dark:text-red-200 text-sm">{errors.general}</p>
               </div>
             )}
 
             {/* Full Name Field */}
             <div>
-              <label htmlFor="full_name" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="full_name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Full Name
               </label>
               <div className="mt-1">
@@ -152,7 +206,7 @@ const Register = () => {
                   required
                   value={formData.full_name}
                   onChange={handleChange}
-                  className={`appearance-none block w-full px-3 py-2 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm ${
+                  className={`appearance-none block w-full px-3 py-2 border rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm ${
                     errors.full_name 
                       ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
                       : 'border-gray-300'
@@ -165,7 +219,7 @@ const Register = () => {
 
             {/* Email Field */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Email address
               </label>
               <div className="mt-1">
@@ -177,7 +231,7 @@ const Register = () => {
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  className={`appearance-none block w-full px-3 py-2 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm ${
+                  className={`appearance-none block w-full px-3 py-2 border rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm ${
                     errors.email 
                       ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
                       : 'border-gray-300'
@@ -190,7 +244,7 @@ const Register = () => {
 
             {/* Role Selection */}
             <div>
-              <label htmlFor="role" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="role" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Role
               </label>
               <div className="mt-1">
@@ -210,7 +264,7 @@ const Register = () => {
 
             {/* Password Field */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Password
               </label>
               <div className="mt-1 relative">
@@ -222,7 +276,7 @@ const Register = () => {
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  className={`appearance-none block w-full px-3 py-2 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm pr-10 ${
+                  className={`appearance-none block w-full px-3 py-2 border rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm pr-10 ${
                     errors.password 
                       ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
                       : 'border-gray-300'
@@ -235,18 +289,44 @@ const Register = () => {
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
-                    <EyeSlashIcon className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                    <EyeSlashIcon className="h-5 w-5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300" />
                   ) : (
-                    <EyeIcon className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                    <EyeIcon className="h-5 w-5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300" />
                   )}
                 </button>
               </div>
+              
+              {/* Password Strength Indicator */}
+              {formData.password && (
+                <div className="mt-2">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs text-gray-600">Password Strength:</span>
+                    <span className={`text-xs font-medium ${
+                      passwordStrength.text === 'Weak' ? 'text-red-600' :
+                      passwordStrength.text === 'Medium' ? 'text-yellow-600' :
+                      'text-green-600'
+                    }`}>
+                      {passwordStrength.text}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className={`h-2 rounded-full transition-all duration-300 ${passwordStrength.color}`}
+                      style={{ width: `${(passwordStrength.score / 6) * 100}%` }}
+                    ></div>
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Use 8+ characters with a mix of letters, numbers & symbols
+                  </p>
+                </div>
+              )}
+              
               {errors.password && <p className="mt-2 text-sm text-red-600">{errors.password}</p>}
             </div>
 
             {/* Confirm Password Field */}
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Confirm Password
               </label>
               <div className="mt-1 relative">
@@ -258,7 +338,7 @@ const Register = () => {
                   required
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className={`appearance-none block w-full px-3 py-2 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm pr-10 ${
+                  className={`appearance-none block w-full px-3 py-2 border rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm pr-10 ${
                     errors.confirmPassword 
                       ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
                       : 'border-gray-300'
@@ -271,9 +351,9 @@ const Register = () => {
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 >
                   {showConfirmPassword ? (
-                    <EyeSlashIcon className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                    <EyeSlashIcon className="h-5 w-5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300" />
                   ) : (
-                    <EyeIcon className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                    <EyeIcon className="h-5 w-5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300" />
                   )}
                 </button>
               </div>

@@ -11,7 +11,7 @@ const TaskTagAssignment = sequelize.define('TaskTagAssignment', {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: 'Tasks',
+      model: 'tasks',
       key: 'task_id'
     }
   },
@@ -19,7 +19,7 @@ const TaskTagAssignment = sequelize.define('TaskTagAssignment', {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: 'TaskTags',
+      model: 'task_tags',
       key: 'tag_id'
     }
   }

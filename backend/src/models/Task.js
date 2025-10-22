@@ -23,7 +23,7 @@ const Task = sequelize.define('Task', {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: 'Users',
+      model: 'users',
       key: 'user_id'
     }
   },
@@ -55,7 +55,7 @@ const Task = sequelize.define('Task', {
     type: DataTypes.INTEGER,
     allowNull: true,
     references: {
-      model: 'Users',
+      model: 'users',
       key: 'user_id'
     }
   },
@@ -71,7 +71,7 @@ const Task = sequelize.define('Task', {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: 'Communities',
+      model: 'communities',
       key: 'community_id'
     }
   },
