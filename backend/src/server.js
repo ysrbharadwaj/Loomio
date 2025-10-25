@@ -21,9 +21,9 @@ const allowedOrigins = [
   'http://localhost:5174',
   'http://localhost:5175',
   'http://localhost:5176',
+  'https://loomio-cbtm.vercel.app',
   'https://loomio-omega.vercel.app',  // Production Vercel URL
-  /^http:\/\/localhost:\d+$/,  // Allow any localhost port
-  /^https:\/\/loomio.*\.vercel\.app$/  // Allow all Vercel preview deployments
+  /^http:\/\/localhost:\d+$/  // Allow any localhost port
 ].filter(Boolean);
 
 app.use(cors({
