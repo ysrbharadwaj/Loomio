@@ -299,12 +299,6 @@ const Dashboard = () => {
               <div className="text-center py-4">
                 <UserGroupIcon className="w-10 h-10 text-gray-400 mx-auto mb-2" />
                 <p className="text-gray-600 dark:text-gray-300 text-sm">No community assigned</p>
-                <Link
-                  to="/communities"
-                  className="mt-2 inline-block text-primary-600 hover:text-primary-700 font-medium text-sm"
-                >
-                  Join a Community
-                </Link>
               </div>
             )}
           </div>

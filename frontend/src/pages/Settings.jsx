@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { 
   BellIcon, 
   EnvelopeIcon, 
@@ -10,6 +11,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 
 const Settings = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
@@ -77,8 +79,7 @@ const Settings = () => {
 
   const tabs = [
     { id: 'notifications', name: 'Notifications', icon: BellIcon },
-    { id: 'profile', name: 'Profile', icon: UserCircleIcon },
-    { id: 'privacy', name: 'Privacy', icon: ShieldCheckIcon }
+    { id: 'profile', name: 'Profile Settings', icon: UserCircleIcon }
   ];
 
   if (loading) {
@@ -107,7 +108,13 @@ const Settings = () => {
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => {
+                  if (tab.id === 'profile') {
+                    navigate('/app/profile');
+                  } else {
+                    setActiveTab(tab.id);
+                  }
+                }}
                 className={`
                   flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-colors
                   ${activeTab === tab.id
@@ -285,19 +292,7 @@ const Settings = () => {
             Profile Settings
           </h2>
           <p className="text-gray-600 dark:text-gray-400">
-            Profile customization coming soon...
-          </p>
-        </div>
-      )}
-
-      {/* Privacy Tab */}
-      {activeTab === 'privacy' && (
-        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-            Privacy Settings
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400">
-            Privacy controls coming soon...
+            Redirecting to profile page...
           </p>
         </div>
       )}
