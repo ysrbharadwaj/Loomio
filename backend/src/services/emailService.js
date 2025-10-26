@@ -1,46 +1,52 @@
-const { Resend } = require('resend');
+const axios = require('axios');
 
 /**
- * Email Service for sending notifications and alerts using Resend
- * Docs: https://resend.com/docs/send-with-nodejs
+ * Email Service for sending notifications and alerts using Google Apps Script
+ * Free, reliable, and uses Gmail to send emails
  */
 
-// Initialize Resend only if API key is available
-let resend = null;
-if (process.env.RESEND_API_KEY) {
-  resend = new Resend(process.env.RESEND_API_KEY);
-  console.log('✅ Resend email service initialized');
+// Apps Script Web App URL - will be deployed from your Google account
+const APPS_SCRIPT_URL = process.env.APPS_SCRIPT_URL;
+
+if (APPS_SCRIPT_URL) {
+  console.log('✅ Google Apps Script email service initialized');
 } else {
-  console.warn('⚠️  Resend API key not set - email notifications disabled');
+  console.warn('⚠️  APPS_SCRIPT_URL not set - email notifications disabled');
+  console.warn('📖 Follow APPS-SCRIPT-SETUP.md to deploy the Apps Script');
 }
 
 /**
- * Send email using Resend
+ * Send email using Google Apps Script
  */
 const sendEmail = async ({ to, subject, html, text }) => {
   try {
-    if (!resend || !process.env.RESEND_API_KEY) {
-      console.warn('⚠️  Email not sent - Resend API key not configured');
-      return { success: false, error: 'Resend API key not configured' };
+    if (!APPS_SCRIPT_URL) {
+      console.warn('⚠️  Email not sent - APPS_SCRIPT_URL not configured');
+      return { success: false, error: 'Apps Script URL not configured' };
     }
 
-    const { data, error } = await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL || 'Loomio <onboarding@resend.dev>',
-      to: [to],
+    const response = await axios.post(APPS_SCRIPT_URL, {
+      to,
       subject,
       html,
-      text: text || stripHtml(html)
+      text: text || stripHtml(html),
+      from: process.env.EMAIL_FROM_NAME || 'Loomio'
+    }, {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      timeout: 10000 // 10 second timeout
     });
 
-    if (error) {
-      console.error('Resend email error:', error);
-      return { success: false, error: error.message };
+    if (response.data && response.data.success) {
+      console.log('✅ Email sent successfully via Apps Script to:', to);
+      return { success: true, messageId: response.data.messageId };
+    } else {
+      console.error('Apps Script email error:', response.data);
+      return { success: false, error: response.data?.error || 'Unknown error' };
     }
-
-    console.log('✅ Email sent successfully via Resend:', data.id);
-    return { success: true, messageId: data.id };
   } catch (error) {
-    console.error('Email sending failed:', error);
+    console.error('Email sending failed:', error.message);
     return { success: false, error: error.message };
   }
 };

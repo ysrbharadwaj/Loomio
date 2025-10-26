@@ -1,4 +1,4 @@
-const { Notification, User, UserCommunity } = require('../models');
+const { Notification, User, UserCommunity, Task, Community } = require('../models');
 const emailService = require('./emailService');
 
 /**
@@ -7,9 +7,9 @@ const emailService = require('./emailService');
  */
 
 /**
- * Send email notification based on user preferences
+ * Send email notification based on user preferences with proper templates
  */
-const sendEmailIfEnabled = async (user, notificationData) => {
+const sendEmailIfEnabled = async (user, notificationData, emailData = {}) => {
   try {
     if (!user.email) {
       return;
@@ -38,13 +38,37 @@ const sendEmailIfEnabled = async (user, notificationData) => {
       return;
     }
 
-    // Map notification types to email templates
-    const emailSubject = notificationData.title;
-    const emailContent = notificationData.message;
-
-    // Send email asynchronously (don't wait for it)
-    emailService.sendEmail(user.email, emailSubject, emailContent, emailContent)
-      .catch(err => console.error('Email notification failed:', err));
+    // Use specific email templates based on notification type
+    if (notificationData.type === 'task_assigned' && emailData.task && emailData.assignedBy && emailData.community) {
+      await emailService.sendTaskAssignedEmail({
+        user,
+        task: emailData.task,
+        assignedBy: emailData.assignedBy,
+        community: emailData.community
+      });
+    } else if (notificationData.type === 'deadline_reminder' && emailData.task && emailData.community) {
+      await emailService.sendDeadlineReminderEmail({
+        user,
+        task: emailData.task,
+        community: emailData.community,
+        hoursRemaining: emailData.hoursRemaining || 24
+      });
+    } else if (notificationData.type === 'task_completed' && emailData.task && emailData.completedBy && emailData.community) {
+      await emailService.sendTaskCompletedEmail({
+        user,
+        task: emailData.task,
+        completedBy: emailData.completedBy,
+        community: emailData.community
+      });
+    } else {
+      // Fallback to generic email for other notification types
+      await emailService.sendEmail({
+        to: user.email,
+        subject: notificationData.title,
+        html: `<p>${notificationData.message}</p>`,
+        text: notificationData.message
+      });
+    }
   } catch (error) {
     console.error('Error sending email notification:', error);
   }
@@ -199,8 +223,14 @@ const notifyTaskCreated = async (task, creatorName, communityName) => {
 /**
  * Notify when a task is assigned to users
  */
-const notifyTaskAssigned = async (task, assignedUserIds, assignedByName, communityName) => {
+const notifyTaskAssigned = async (task, assignedUserIds, assignedByName, communityName, assignedByUser, community) => {
   try {
+    // Get full user details for email
+    const users = await User.findAll({
+      where: { user_id: assignedUserIds },
+      attributes: ['user_id', 'email', 'full_name', 'email_preferences']
+    });
+
     const notifications = assignedUserIds.map(userId => ({
       user_id: userId,
       title: 'Task Assigned',
@@ -213,7 +243,19 @@ const notifyTaskAssigned = async (task, assignedUserIds, assignedByName, communi
     }));
 
     if (notifications.length > 0) {
-      await createBulkNotifications(notifications);
+      const createdNotifications = await Notification.bulkCreate(notifications);
+      
+      // Send emails with proper templates
+      users.forEach(user => {
+        sendEmailIfEnabled(user, {
+          title: 'Task Assigned',
+          type: 'task_assigned'
+        }, {
+          task,
+          assignedBy: assignedByUser || { full_name: assignedByName },
+          community: community || { name: communityName }
+        }).catch(err => console.error('Email notification failed:', err));
+      });
     }
   } catch (error) {
     console.error('Error in notifyTaskAssigned:', error);
