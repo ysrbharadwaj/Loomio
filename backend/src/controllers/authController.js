@@ -173,7 +173,17 @@ const refreshToken = async (req, res) => {
 const getMe = async (req, res) => {
   try {
     const user = await User.findByPk(req.user.user_id, {
-      include: [{ model: Community, as: 'community' }]
+      include: [
+        { 
+          model: Community, 
+          as: 'communities',
+          through: { 
+            where: { is_active: true },
+            attributes: ['role', 'joined_at']
+          },
+          required: false
+        }
+      ]
     });
 
     if (!user) {
@@ -230,9 +240,19 @@ const updateProfile = async (req, res) => {
       avatar_url: avatar_url || user.avatar_url
     });
 
-    // Get updated user with community
+    // Get updated user with communities
     const updatedUser = await User.findByPk(userId, {
-      include: [{ model: Community, as: 'community' }]
+      include: [
+        { 
+          model: Community, 
+          as: 'communities',
+          through: { 
+            where: { is_active: true },
+            attributes: ['role', 'joined_at']
+          },
+          required: false
+        }
+      ]
     });
 
     res.json({
