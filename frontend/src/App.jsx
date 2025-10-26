@@ -16,6 +16,8 @@ import Profile from './pages/Profile';
 import Notifications from './pages/Notifications';
 import Analytics from './pages/Analytics';
 import Leaderboard from './pages/Leaderboard';
+import Settings from './pages/Settings';
+import GoogleCallback from './pages/GoogleCallback';
 import LoadingSpinner from './components/LoadingSpinner';
 
 function App() {
@@ -30,6 +32,7 @@ function App() {
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
                   <Route path="/join" element={<JoinCommunity />} />
+                  <Route path="/auth/google/callback" element={<GoogleCallback />} />
               
               {/* Protected routes */}
               <Route path="/app" element={
@@ -44,7 +47,7 @@ function App() {
                 <Route path="calendar" element={<Calendar />} />
                 <Route path="leaderboard" element={<Leaderboard />} />
                 <Route path="profile" element={<Profile />} />
-                <Route path="settings" element={<Profile />} />
+                <Route path="settings" element={<Settings />} />
                 <Route path="notifications" element={<Notifications />} />
                 <Route path="analytics" element={<Analytics />} />
               </Route>

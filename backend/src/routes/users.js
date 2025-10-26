@@ -5,7 +5,8 @@ const {
   getUserById,
   updateUser,
   deleteUser,
-  getUserStats
+  getUserStats,
+  updateEmailPreferences
 } = require('../controllers/userController');
 const { 
   authenticateToken, 
@@ -28,5 +29,8 @@ router.delete('/:id', authenticateToken, requirePlatformAdmin, validateId, delet
 
 // Get user stats
 router.get('/:id/stats', authenticateToken, validateId, getUserStats);
+
+// Update email preferences (user can only update their own)
+router.put('/me/email-preferences', authenticateToken, updateEmailPreferences);
 
 module.exports = router;

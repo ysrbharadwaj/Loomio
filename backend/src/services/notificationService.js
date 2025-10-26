@@ -1,16 +1,61 @@
 const { Notification, User, UserCommunity } = require('../models');
+const emailService = require('./emailService');
 
 /**
  * Notification Service
- * Centralizes all notification creation logic
+ * Centralizes all notification creation logic with email integration
  */
+
+/**
+ * Send email notification based on user preferences
+ */
+const sendEmailIfEnabled = async (user, notificationData) => {
+  try {
+    if (!user.email) {
+      return;
+    }
+
+    // Check if user has email notifications enabled based on notification type
+    const prefs = user.email_preferences || {
+      notifications: true,
+      taskAssignments: true,
+      taskReminders: true,
+      communityUpdates: true
+    };
+
+    // Map notification types to preference keys
+    let shouldSend = prefs.notifications; // Default to general notifications preference
+
+    if (notificationData.type === 'task_assigned' || notificationData.type === 'task_self_assigned') {
+      shouldSend = prefs.taskAssignments !== false;
+    } else if (notificationData.type === 'deadline_reminder') {
+      shouldSend = prefs.taskReminders !== false;
+    } else if (notificationData.type.includes('community')) {
+      shouldSend = prefs.communityUpdates !== false;
+    }
+
+    if (!shouldSend) {
+      return;
+    }
+
+    // Map notification types to email templates
+    const emailSubject = notificationData.title;
+    const emailContent = notificationData.message;
+
+    // Send email asynchronously (don't wait for it)
+    emailService.sendEmail(user.email, emailSubject, emailContent, emailContent)
+      .catch(err => console.error('Email notification failed:', err));
+  } catch (error) {
+    console.error('Error sending email notification:', error);
+  }
+};
 
 /**
  * Create a notification for a specific user
  */
 const createNotification = async ({ userId, title, message, type, relatedId, relatedType, priority, communityId }) => {
   try {
-    return await Notification.create({
+    const notification = await Notification.create({
       user_id: userId,
       title,
       message,
@@ -20,6 +65,14 @@ const createNotification = async ({ userId, title, message, type, relatedId, rel
       priority: priority || 'medium',
       community_id: communityId
     });
+
+    // Send email notification
+    const user = await User.findByPk(userId, { attributes: ['user_id', 'email', 'full_name'] });
+    if (user) {
+      await sendEmailIfEnabled(user, { title, message, type });
+    }
+
+    return notification;
   } catch (error) {
     console.error('Error creating notification:', error);
     throw error;
@@ -31,7 +84,30 @@ const createNotification = async ({ userId, title, message, type, relatedId, rel
  */
 const createBulkNotifications = async (notifications) => {
   try {
-    return await Notification.bulkCreate(notifications);
+    const createdNotifications = await Notification.bulkCreate(notifications);
+
+    // Send email notifications to all users
+    const userIds = [...new Set(notifications.map(n => n.user_id))];
+    const users = await User.findAll({
+      where: { user_id: userIds },
+      attributes: ['user_id', 'email', 'full_name']
+    });
+
+    // Map user_id to user object for quick lookup
+    const userMap = {};
+    users.forEach(user => {
+      userMap[user.user_id] = user;
+    });
+
+    // Send emails asynchronously
+    notifications.forEach(notif => {
+      const user = userMap[notif.user_id];
+      if (user) {
+        sendEmailIfEnabled(user, notif);
+      }
+    });
+
+    return createdNotifications;
   } catch (error) {
     console.error('Error creating bulk notifications:', error);
     throw error;

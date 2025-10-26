@@ -245,10 +245,50 @@ const getUserStats = async (req, res) => {
   }
 };
 
+// Update user email preferences
+const updateEmailPreferences = async (req, res) => {
+  try {
+    const userId = req.user.user_id; // Only allow users to update their own preferences
+    const { 
+      notifications, 
+      taskAssignments, 
+      taskReminders, 
+      communityUpdates, 
+      weeklyDigest 
+    } = req.body;
+
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Build updated preferences object
+    const updatedPreferences = {
+      ...user.email_preferences,
+      notifications: notifications !== undefined ? notifications : user.email_preferences?.notifications ?? true,
+      taskAssignments: taskAssignments !== undefined ? taskAssignments : user.email_preferences?.taskAssignments ?? true,
+      taskReminders: taskReminders !== undefined ? taskReminders : user.email_preferences?.taskReminders ?? true,
+      communityUpdates: communityUpdates !== undefined ? communityUpdates : user.email_preferences?.communityUpdates ?? true,
+      weeklyDigest: weeklyDigest !== undefined ? weeklyDigest : user.email_preferences?.weeklyDigest ?? false
+    };
+
+    await user.update({ email_preferences: updatedPreferences });
+
+    res.json({ 
+      message: 'Email preferences updated successfully',
+      email_preferences: updatedPreferences
+    });
+  } catch (error) {
+    console.error('Update email preferences error:', error);
+    res.status(500).json({ message: 'Failed to update email preferences', error: error.message });
+  }
+};
+
 module.exports = {
   getAllUsers,
   getUserById,
   updateUser,
   deleteUser,
-  getUserStats
+  getUserStats,
+  updateEmailPreferences
 };

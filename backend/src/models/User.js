@@ -18,11 +18,24 @@ const User = sequelize.define('User', {
   },
   password_hash: {
     type: DataTypes.STRING(255),
-    allowNull: false
+    allowNull: true // Allow null for Google OAuth users
   },
   full_name: {
     type: DataTypes.STRING(255),
     allowNull: false
+  },
+  google_id: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    unique: true
+  },
+  profile_picture: {
+    type: DataTypes.STRING(500),
+    allowNull: true
+  },
+  email_verified: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
   },
   role: {
     type: DataTypes.ENUM('platform_admin', 'community_admin', 'member'),
@@ -44,6 +57,16 @@ const User = sequelize.define('User', {
   is_active: {
     type: DataTypes.BOOLEAN,
     defaultValue: true
+  },
+  email_preferences: {
+    type: DataTypes.JSON,
+    defaultValue: {
+      notifications: true,        // Receive email for all notifications
+      taskAssignments: true,      // Receive email when assigned to tasks
+      taskReminders: true,        // Receive deadline reminder emails
+      communityUpdates: true,     // Receive community-related emails
+      weeklyDigest: false         // Receive weekly summary email
+    }
   }
 }, {
   tableName: 'users',
@@ -61,6 +84,10 @@ const User = sequelize.define('User', {
 });
 
 User.prototype.comparePassword = async function(candidatePassword) {
+  // If password_hash is null (Google OAuth user), return false
+  if (!this.password_hash) {
+    return false;
+  }
   return await bcrypt.compare(candidatePassword, this.password_hash);
 };
 
