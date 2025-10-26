@@ -114,4 +114,11 @@ export const analyticsAPI = {
   getMyCommunityAnalytics: () => api.get('/analytics/my-community')
 };
 
+// Statistics API
+export const statisticsAPI = {
+  getUserStatistics: (userId, params) => api.get(`/statistics/${userId}`, { params }),
+  getMyStatistics: (params) => api.get('/statistics', { params }),
+  getUserActivity: (userId, params) => api.get(`/statistics/${userId}/activity`, { params }),
+};
+
 export default api;

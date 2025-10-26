@@ -12,7 +12,7 @@ import {
   ArrowDownIcon
 } from '@heroicons/react/24/outline';
 import { Link } from 'react-router-dom';
-import { taskAPI, eventAPI, userAPI } from '../services/api';
+import { taskAPI, eventAPI, userAPI, statisticsAPI } from '../services/api';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -34,10 +34,20 @@ const Dashboard = () => {
     try {
       setDashboardData(prev => ({ ...prev, isLoading: true }));
       
-      // Fetch user's tasks
-      const tasksResponse = await taskAPI.getAllTasks({ user_id: user.user_id });
+      // Fetch user's assigned tasks only
+      const tasksResponse = await taskAPI.getAllTasks({ assigned_to: user.user_id });
       const tasks = tasksResponse.data.tasks || [];
-      const completedTasks = tasks.filter(task => task.status === 'completed');
+      
+      // Filter tasks by assignment status for this specific user
+      const userTasks = tasks.filter(task => {
+        return task.assignees?.some(assignee => assignee.user_id === user.user_id);
+      });
+      
+      // Get completed tasks where this user completed them
+      const completedTasks = userTasks.filter(task => {
+        const userAssignment = task.assignees?.find(assignee => assignee.user_id === user.user_id);
+        return userAssignment?.TaskAssignment?.status === 'completed';
+      });
       
       // Fetch user's events (if available)
       let eventsAttended = 0;
@@ -47,27 +57,55 @@ const Dashboard = () => {
       } catch (err) {
         console.log('Events not available yet');
       }
+
+      // Try to fetch user activity from statistics API
+      let activities = [];
+      try {
+        const activityResponse = await statisticsAPI.getUserActivity(user.user_id, { limit: 5 });
+        if (activityResponse.data?.activities) {
+          activities = activityResponse.data.activities.map(activity => ({
+            id: activity.activity_id || activity.id,
+            type: activity.activity_type || activity.type,
+            title: activity.description || activity.title,
+            time: new Date(activity.created_at).toLocaleDateString(),
+            points: activity.points_earned ? `+${activity.points_earned}` : null,
+            icon: CheckCircleIcon,
+            color: 'success'
+          }));
+        }
+      } catch (err) {
+        console.log('Activity API not available, using task-based activities');
+        // Fallback to task-based activities
+        activities = completedTasks
+          .sort((a, b) => {
+            const aAssignment = a.assignees?.find(assignee => assignee.user_id === user.user_id);
+            const bAssignment = b.assignees?.find(assignee => assignee.user_id === user.user_id);
+            const aDate = new Date(aAssignment?.TaskAssignment?.completed_at || a.updated_at);
+            const bDate = new Date(bAssignment?.TaskAssignment?.completed_at || b.updated_at);
+            return bDate - aDate; // Sort descending (newest first)
+          })
+          .slice(0, 5)
+          .map(task => {
+            const userAssignment = task.assignees?.find(assignee => assignee.user_id === user.user_id);
+            const completedDate = userAssignment?.TaskAssignment?.completed_at || task.updated_at;
+            return {
+              id: task.task_id,
+              type: 'task_completed',
+              title: `Completed "${task.title}"`,
+              time: new Date(completedDate).toLocaleDateString(),
+              points: `+${task.points || 10}`,
+              icon: CheckCircleIcon,
+              color: 'success'
+            };
+          });
+      }
       
       setDashboardData({
-        totalTasks: tasks.length,
+        totalTasks: userTasks.length,
         completedTasks: completedTasks.length,
         eventsAttended,
         isLoading: false
       });
-      
-      // Set recent activities based on tasks
-      const activities = tasks
-        .filter(task => task.status === 'completed')
-        .slice(0, 3)
-        .map(task => ({
-          id: task.task_id,
-          type: 'task_completed',
-          title: `Completed "${task.title}"`,
-          time: new Date(task.completion_date || task.updated_at).toLocaleDateString(),
-          points: '+10',
-          icon: CheckCircleIcon,
-          color: 'success'
-        }));
       
       setRecentActivities(activities);
     } catch (error) {
