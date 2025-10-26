@@ -66,7 +66,6 @@ const sendWelcomeEmail = async (user) => {
         .container { max-width: 600px; margin: 0 auto; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
         .header { background: #4f46e5; color: white; padding: 40px 30px; text-align: center; border-bottom: 4px solid #3730a3; }
         .header h1 { margin: 0; font-size: 28px; font-weight: 700; }
-        .emoji { font-size: 48px; display: block; margin-bottom: 10px; }
         .content { padding: 40px 30px; background: white; }
         .content h2 { color: #1f2937; margin-top: 0; }
         .content p { color: #4b5563; line-height: 1.8; }
@@ -84,7 +83,6 @@ const sendWelcomeEmail = async (user) => {
     <body>
       <div class="container">
         <div class="header">
-          <span class="emoji">🎉</span>
           <h1>Welcome to Loomio!</h1>
         </div>
         <div class="content">
@@ -152,7 +150,6 @@ const sendTaskAssignedEmail = async ({ user, task, assignedBy, community, isGrou
         .container { max-width: 600px; margin: 0 auto; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
         .header { background: #0f766e; color: white; padding: 40px 30px; text-align: center; border-bottom: 4px solid #0d5c55; }
         .header h1 { margin: 0; font-size: 28px; font-weight: 700; }
-        .emoji { font-size: 48px; display: block; margin-bottom: 10px; }
         .content { padding: 40px 30px; background: white; }
         .content h2 { color: #1f2937; margin-top: 0; }
         .content p { color: #4b5563; line-height: 1.8; }
@@ -173,7 +170,6 @@ const sendTaskAssignedEmail = async ({ user, task, assignedBy, community, isGrou
     <body>
       <div class="container">
         <div class="header">
-          <span class="emoji">📋</span>
           <h1>${isGroupTask ? 'Group Task Assigned' : 'New Task Assigned'}</h1>
         </div>
         <div class="content">
@@ -263,7 +259,7 @@ const sendDeadlineReminderEmail = async ({ user, task, community, hoursRemaining
     <body>
       <div class="container">
         <div class="header">
-          <h1>⏰ Deadline Reminder</h1>
+          <h1>Deadline Reminder</h1>
         </div>
         <div class="content">
           <h2>Hi ${user.full_name},</h2>
@@ -318,7 +314,7 @@ const sendTaskCompletedEmail = async ({ user, task, completedBy, community }) =>
     <body>
       <div class="container">
         <div class="header">
-          <h1>✅ Task Completed!</h1>
+          <h1>Task Completed!</h1>
         </div>
         <div class="content">
           <h2>Great news, ${user.full_name}!</h2>
@@ -374,7 +370,7 @@ const sendCommunityInviteEmail = async ({ email, communityName, communityCode, i
     <body>
       <div class="container">
         <div class="header">
-          <h1>🎉 You're Invited!</h1>
+          <h1>You're Invited!</h1>
         </div>
         <div class="content">
           <h2>Join ${communityName}</h2>
