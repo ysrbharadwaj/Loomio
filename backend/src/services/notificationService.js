@@ -231,10 +231,13 @@ const notifyTaskAssigned = async (task, assignedUserIds, assignedByName, communi
       attributes: ['user_id', 'email', 'full_name', 'email_preferences']
     });
 
+    const isGroupTask = assignedUserIds.length > 1;
+    const totalAssignees = assignedUserIds.length;
+
     const notifications = assignedUserIds.map(userId => ({
       user_id: userId,
-      title: 'Task Assigned',
-      message: `You have been assigned to task "${task.title}" by ${assignedByName} in ${communityName}.`,
+      title: isGroupTask ? 'Group Task Assigned' : 'Task Assigned',
+      message: `You have been assigned to ${isGroupTask ? 'a group task' : 'task'} "${task.title}" by ${assignedByName} in ${communityName}.${isGroupTask ? ` This task is shared with ${totalAssignees} team members.` : ''}`,
       type: 'task_assigned',
       related_id: task.task_id,
       related_type: 'task',
@@ -245,15 +248,17 @@ const notifyTaskAssigned = async (task, assignedUserIds, assignedByName, communi
     if (notifications.length > 0) {
       const createdNotifications = await Notification.bulkCreate(notifications);
       
-      // Send emails with proper templates
+      // Send emails to ALL participants with proper templates
       users.forEach(user => {
         sendEmailIfEnabled(user, {
-          title: 'Task Assigned',
+          title: isGroupTask ? 'Group Task Assigned' : 'Task Assigned',
           type: 'task_assigned'
         }, {
           task,
           assignedBy: assignedByUser || { full_name: assignedByName },
-          community: community || { name: communityName }
+          community: community || { name: communityName },
+          isGroupTask,
+          totalAssignees
         }).catch(err => console.error('Email notification failed:', err));
       });
     }
