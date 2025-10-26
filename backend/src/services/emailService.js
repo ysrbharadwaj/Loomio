@@ -71,7 +71,7 @@ const sendWelcomeEmail = async (user) => {
         .content p { color: #4b5563; line-height: 1.8; }
         .feature-list { list-style: none; padding: 0; margin: 20px 0; }
         .feature-list li { padding: 12px 0; color: #4b5563; position: relative; padding-left: 30px; }
-        .feature-list li:before { content: "✓"; position: absolute; left: 0; color: #10b981; font-weight: bold; font-size: 18px; }
+        .feature-list li:before { content: "\\2022"; position: absolute; left: 0; color: #10b981; font-weight: bold; font-size: 24px; }
         .button { display: inline-block; background: #4f46e5; color: white !important; padding: 14px 32px; text-decoration: none; border-radius: 8px; margin: 25px 0; font-weight: 600; box-shadow: 0 2px 4px rgba(79, 70, 229, 0.3); }
         .button:hover { background: #4338ca; }
         .info-box { background: #f9fafb; border-left: 4px solid #4f46e5; padding: 15px 20px; margin: 20px 0; border-radius: 4px; }
@@ -131,9 +131,9 @@ const sendWelcomeEmail = async (user) => {
  */
 const sendTaskAssignedEmail = async ({ user, task, assignedBy, community, isGroupTask = false, totalAssignees = 1 }) => {
   const priorityColors = {
-    high: { bg: '#fee2e2', text: '#991b1b', icon: '🔴' },
-    medium: { bg: '#fef3c7', text: '#92400e', icon: '🟡' },
-    low: { bg: '#dbeafe', text: '#1e40af', icon: '🟢' }
+    high: { bg: '#fee2e2', text: '#991b1b', label: 'HIGH' },
+    medium: { bg: '#fef3c7', text: '#92400e', label: 'MEDIUM' },
+    low: { bg: '#dbeafe', text: '#1e40af', label: 'LOW' }
   };
   
   const priority = task.priority || 'medium';
@@ -178,7 +178,7 @@ const sendTaskAssignedEmail = async ({ user, task, assignedBy, community, isGrou
           
           ${isGroupTask && totalAssignees > 1 ? `
           <div class="highlight-box">
-            <strong>👥 Group Task:</strong> This task is assigned to ${totalAssignees} team members. Collaboration is key!
+            <strong>Group Task:</strong> This task is assigned to ${totalAssignees} team members. Collaboration is key!
           </div>
           ` : ''}
           
@@ -188,8 +188,8 @@ const sendTaskAssignedEmail = async ({ user, task, assignedBy, community, isGrou
             
             <div class="task-detail">
               <strong>Priority:</strong> 
-              <span class="priority-badge">${priorityStyle.icon} ${priority.toUpperCase()}</span>
-              ${isGroupTask ? '<span class="group-badge">👥 GROUP TASK</span>' : ''}
+              <span class="priority-badge">${priorityStyle.label}</span>
+              ${isGroupTask ? '<span class="group-badge">GROUP TASK</span>' : ''}
             </div>
             
             ${task.deadline ? `
@@ -199,7 +199,7 @@ const sendTaskAssignedEmail = async ({ user, task, assignedBy, community, isGrou
             ` : ''}
             
             <div class="task-detail">
-              <strong>Points:</strong> 🏆 ${task.points || 0} points
+              <strong>Points:</strong> ${task.points || 0} points
             </div>
             
             ${task.category ? `
@@ -216,7 +216,7 @@ const sendTaskAssignedEmail = async ({ user, task, assignedBy, community, isGrou
           </div>
           
           <p style="margin-top: 30px; font-size: 14px; color: #6b7280;">
-            💡 <strong>Tip:</strong> You can manage your email preferences from your profile settings.
+            <strong>Tip:</strong> You can manage your email preferences from your profile settings.
           </p>
         </div>
         <div class="footer">
@@ -323,7 +323,7 @@ const sendTaskCompletedEmail = async ({ user, task, completedBy, community }) =>
           <div class="success-card">
             <h3>${task.title}</h3>
             <p><strong>Community:</strong> ${community.name || community}</p>
-            <p><strong>Points Earned:</strong> 🏆 ${task.points || 0}</p>
+            <p><strong>Points Earned:</strong> ${task.points || 0}</p>
             <p><strong>Completed by:</strong> ${completedBy.full_name || completedBy}</p>
           </div>
           
@@ -347,6 +347,80 @@ const sendTaskCompletedEmail = async ({ user, task, completedBy, community }) =>
 };
 
 /**
+ * Send community welcome email when user joins a community
+ */
+const sendCommunityWelcomeEmail = async ({ user, community }) => {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f3f4f6; }
+        .container { max-width: 600px; margin: 0 auto; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .header { background: #0f766e; color: white; padding: 40px 30px; text-align: center; border-bottom: 4px solid #0d5c55; }
+        .header h1 { margin: 0; font-size: 28px; font-weight: 700; }
+        .content { padding: 30px; }
+        .content h2 { color: #1f2937; margin-top: 0; }
+        .content p { color: #4b5563; line-height: 1.8; }
+        .community-card { background: #f0fdfa; border-left: 4px solid #0f766e; padding: 20px; margin: 20px 0; border-radius: 8px; }
+        .community-card h3 { margin: 0 0 10px 0; color: #1f2937; }
+        .feature-list { list-style: none; padding: 0; margin: 20px 0; }
+        .feature-list li { padding: 8px 0; color: #4b5563; position: relative; padding-left: 25px; }
+        .feature-list li:before { content: "\\2022"; position: absolute; left: 0; color: #10b981; font-weight: bold; font-size: 24px; }
+        .button { display: inline-block; background: #0f766e; color: white !important; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; box-shadow: 0 2px 4px rgba(15, 118, 110, 0.3); }
+        .button:hover { background: #0d5c55; }
+        .footer { background: #1f2937; color: #9ca3af; padding: 30px; text-align: center; font-size: 14px; }
+        .footer p { margin: 5px 0; }
+        .footer strong { color: #d1d5db; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>Welcome to ${community.name}!</h1>
+        </div>
+        <div class="content">
+          <h2>Hi ${user.full_name},</h2>
+          <p>You have successfully joined the <strong>${community.name}</strong> community!</p>
+          
+          <div class="community-card">
+            <h3>${community.name}</h3>
+            <p>${community.description || 'Welcome to our community!'}</p>
+          </div>
+          
+          <p><strong>What's next?</strong></p>
+          <ul class="feature-list">
+            <li>View and accept tasks assigned to you</li>
+            <li>Collaborate with other community members</li>
+            <li>Earn points for completing tasks</li>
+            <li>Track your progress on the leaderboard</li>
+          </ul>
+          
+          <div style="text-align: center;">
+            <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/app/tasks" class="button">View Tasks</a>
+          </div>
+          
+          <p>We're excited to have you as part of our community!</p>
+        </div>
+        <div class="footer">
+          <strong>Threads of Effort, Woven Into Outcomes</strong>
+          <p>&copy; ${new Date().getFullYear()} Loomio. All rights reserved.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  return await sendEmail({
+    to: user.email,
+    subject: `Welcome to ${community.name} Community!`,
+    html
+  });
+};
+
+/**
  * Send community invite email
  */
 const sendCommunityInviteEmail = async ({ email, communityName, communityCode, invitedBy }) => {
@@ -355,16 +429,22 @@ const sendCommunityInviteEmail = async ({ email, communityName, communityCode, i
     <html>
     <head>
       <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f3f4f6; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f3f4f6; }
         .container { max-width: 600px; margin: 0 auto; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
         .header { background: #7c3aed; color: white; padding: 40px 30px; text-align: center; border-bottom: 4px solid #6d28d9; }
         .header h1 { margin: 0; font-size: 28px; font-weight: 700; }
         .content { padding: 30px; }
+        .content h2 { color: #1f2937; margin-top: 0; }
+        .content p { color: #4b5563; line-height: 1.8; }
         .invite-card { background: #f3f4f6; border: 2px solid #7c3aed; padding: 20px; margin: 20px 0; border-radius: 8px; text-align: center; }
         .code { font-size: 24px; font-weight: bold; background: #ede9fe; color: #6d28d9; padding: 10px 20px; border-radius: 8px; display: inline-block; margin: 10px 0; letter-spacing: 2px; }
-        .button { display: inline-block; background: #7c3aed; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; box-shadow: 0 2px 4px rgba(124, 58, 237, 0.3); }
-        .footer { background: #1f2937; color: #9ca3af; padding: 20px; text-align: center; }
+        .button { display: inline-block; background: #7c3aed; color: white !important; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; box-shadow: 0 2px 4px rgba(124, 58, 237, 0.3); }
+        .button:hover { background: #6d28d9; }
+        .footer { background: #1f2937; color: #9ca3af; padding: 30px; text-align: center; font-size: 14px; }
+        .footer p { margin: 5px 0; }
+        .footer strong { color: #d1d5db; }
       </style>
     </head>
     <body>
@@ -382,13 +462,14 @@ const sendCommunityInviteEmail = async ({ email, communityName, communityCode, i
             <p style="font-size: 14px; color: #6b7280;">Use this code to join the community</p>
           </div>
           
-          <p style="text-align: center;">
+          <div style="text-align: center;">
             <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/register" class="button">Join Now</a>
-          </p>
+          </div>
           
           <p>Start collaborating on tasks, earning points, and contributing to your community!</p>
         </div>
         <div class="footer">
+          <strong>Threads of Effort, Woven Into Outcomes</strong>
           <p>&copy; ${new Date().getFullYear()} Loomio. All rights reserved.</p>
         </div>
       </div>
@@ -422,6 +503,7 @@ const stripHtml = (html) => {
 module.exports = {
   sendEmail,
   sendWelcomeEmail,
+  sendCommunityWelcomeEmail,
   sendTaskAssignedEmail,
   sendDeadlineReminderEmail,
   sendTaskCompletedEmail,
