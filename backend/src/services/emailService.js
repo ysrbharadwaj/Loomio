@@ -5,16 +5,22 @@ const { Resend } = require('resend');
  * Docs: https://resend.com/docs/send-with-nodejs
  */
 
-// Initialize Resend
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Initialize Resend only if API key is available
+let resend = null;
+if (process.env.RESEND_API_KEY) {
+  resend = new Resend(process.env.RESEND_API_KEY);
+  console.log('✅ Resend email service initialized');
+} else {
+  console.warn('⚠️  Resend API key not set - email notifications disabled');
+}
 
 /**
  * Send email using Resend
  */
 const sendEmail = async ({ to, subject, html, text }) => {
   try {
-    if (!process.env.RESEND_API_KEY) {
-      console.warn('⚠️  RESEND_API_KEY not set - email not sent');
+    if (!resend || !process.env.RESEND_API_KEY) {
+      console.warn('⚠️  Email not sent - Resend API key not configured');
       return { success: false, error: 'Resend API key not configured' };
     }
 
