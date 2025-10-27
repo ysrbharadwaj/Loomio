@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { 
   UserGroupIcon, 
   PlusIcon, 
@@ -15,6 +16,7 @@ import api from '../services/api';
 
 const Communities = () => {
   const { user, updateUser } = useAuth();
+  const navigate = useNavigate();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showJoinForm, setShowJoinForm] = useState(false);
   const [communities, setCommunities] = useState([]);
@@ -322,7 +324,10 @@ const Communities = () => {
                     <span>{community.memberCount || 0} members</span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <button className="text-primary-600 hover:text-primary-700 text-sm font-medium">
+                    <button 
+                      onClick={() => navigate(`/app/communities/${community.community_id}`)}
+                      className="text-primary-600 hover:text-primary-700 text-sm font-medium"
+                    >
                       View Details
                     </button>
                     {(user?.role === 'platform_admin' || 

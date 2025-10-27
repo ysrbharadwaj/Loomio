@@ -115,8 +115,8 @@ const Sidebar = ({ isOpen, onClose }) => {
       </nav>
 
       {/* Community info */}
-      <div className="px-6 py-6 border-t border-slate-700">
-        {user?.community ? (
+      {user?.community && (
+        <div className="px-6 py-6 border-t border-gray-200 dark:border-gray-700">
           <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
             <div className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold mb-2">
               Community
@@ -128,24 +128,8 @@ const Sidebar = ({ isOpen, onClose }) => {
               {user.community.description || 'Active community member'}
             </div>
           </div>
-        ) : (
-          <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-            <div className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold mb-2">
-              Community
-            </div>
-            <div className="text-xs text-gray-600 dark:text-gray-400 mb-2">
-              No community assigned
-            </div>
-            <NavLink 
-              to="/communities"
-              onClick={() => onClose && onClose()}
-              className="text-xs text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-semibold"
-            >
-              Join a Community →
-            </NavLink>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
       </div>
     </>
   );

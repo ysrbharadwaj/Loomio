@@ -3,6 +3,8 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const path = require('path');
+const session = require('express-session');
+const passport = require('./config/passport');
 require('dotenv').config({ path: path.join(__dirname, '../../.env') });
 
 const sequelize = require('./config/database');
@@ -21,9 +23,9 @@ const allowedOrigins = [
   'http://localhost:5174',
   'http://localhost:5175',
   'http://localhost:5176',
+  'https://loomio-cbtm.vercel.app',
   'https://loomio-omega.vercel.app',  // Production Vercel URL
-  /^http:\/\/localhost:\d+$/,  // Allow any localhost port
-  /^https:\/\/loomio.*\.vercel\.app$/  // Allow all Vercel preview deployments
+  /^http:\/\/localhost:\d+$/  // Allow any localhost port
 ].filter(Boolean);
 
 app.use(cors({
@@ -51,6 +53,21 @@ app.use(cors({
 app.use(morgan('combined'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// Session configuration for passport
+app.use(session({
+  secret: process.env.JWT_SECRET || 'your-secret-key',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+}));
+
+// Initialize Passport
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));

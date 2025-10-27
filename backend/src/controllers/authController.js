@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const { User, Community, UserCommunity, Contribution, Task, TaskAssignment } = require('../models');
 const { Op } = require('sequelize');
+const { sendWelcomeEmail } = require('../services/emailService');
 
 // Generate JWT token
 const generateToken = (userId) => {
@@ -62,6 +63,11 @@ const register = async (req, res) => {
     // Generate tokens
     const token = generateToken(user.user_id);
     const refreshToken = generateRefreshToken(user.user_id);
+
+    // Send welcome email (async, don't wait for it)
+    sendWelcomeEmail(user).catch(err => {
+      console.error('Failed to send welcome email:', err);
+    });
 
     res.status(201).json({
       message: 'User registered successfully',
@@ -167,7 +173,17 @@ const refreshToken = async (req, res) => {
 const getMe = async (req, res) => {
   try {
     const user = await User.findByPk(req.user.user_id, {
-      include: [{ model: Community, as: 'community' }]
+      include: [
+        { 
+          model: Community, 
+          as: 'communities',
+          through: { 
+            where: { is_active: true },
+            attributes: ['role', 'joined_at']
+          },
+          required: false
+        }
+      ]
     });
 
     if (!user) {
@@ -224,9 +240,19 @@ const updateProfile = async (req, res) => {
       avatar_url: avatar_url || user.avatar_url
     });
 
-    // Get updated user with community
+    // Get updated user with communities
     const updatedUser = await User.findByPk(userId, {
-      include: [{ model: Community, as: 'community' }]
+      include: [
+        { 
+          model: Community, 
+          as: 'communities',
+          through: { 
+            where: { is_active: true },
+            attributes: ['role', 'joined_at']
+          },
+          required: false
+        }
+      ]
     });
 
     res.json({
@@ -251,11 +277,40 @@ const logout = async (req, res) => {
   }
 };
 
+// Google OAuth Success Callback
+const googleAuthSuccess = async (req, res) => {
+  try {
+    const user = req.user;
+    
+    if (!user) {
+      return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/login?error=auth_failed`);
+    }
+
+    // Generate tokens
+    const token = generateToken(user.user_id);
+    const refreshToken = generateRefreshToken(user.user_id);
+
+    // Redirect to frontend with tokens
+    const redirectUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/google/callback?token=${token}&refreshToken=${refreshToken}`;
+    res.redirect(redirectUrl);
+  } catch (error) {
+    console.error('Google auth success error:', error);
+    res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/login?error=auth_failed`);
+  }
+};
+
+// Google OAuth Failure Callback
+const googleAuthFailure = async (req, res) => {
+  res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/login?error=google_auth_failed`);
+};
+
 module.exports = {
   register,
   login,
   refreshToken,
   getMe,
   updateProfile,
-  logout
+  logout,
+  googleAuthSuccess,
+  googleAuthFailure
 };

@@ -1,6 +1,7 @@
 const { Community, User, UserCommunity, Task, Event, Contribution } = require('../models');
 const { Op } = require('sequelize');
 const notificationService = require('../services/notificationService');
+const { sendCommunityWelcomeEmail } = require('../services/emailService');
 
 // Get all communities
 const getAllCommunities = async (req, res) => {
@@ -287,6 +288,9 @@ const joinCommunity = async (req, res) => {
         user.full_name,
         community.name
       );
+      
+      // Send welcome email to the new member
+      await sendCommunityWelcomeEmail({ user, community });
     } catch (notifError) {
       console.error('Error sending member joined notification:', notifError);
     }

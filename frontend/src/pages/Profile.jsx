@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { 
   UserIcon, 
@@ -8,7 +8,8 @@ import {
   UserGroupIcon,
   PencilIcon,
   CheckIcon,
-  XMarkIcon
+  XMarkIcon,
+  BellIcon
 } from '@heroicons/react/24/outline';
 import api from '../services/api';
 
@@ -22,9 +23,24 @@ const Profile = () => {
     new_password: '',
     confirm_password: ''
   });
+  const [emailPreferences, setEmailPreferences] = useState({
+    notifications: true,
+    taskAssignments: true,
+    taskReminders: true,
+    communityUpdates: true,
+    weeklyDigest: false
+  });
+  const [isLoadingPrefs, setIsLoadingPrefs] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  // Load email preferences
+  useEffect(() => {
+    if (user?.email_preferences) {
+      setEmailPreferences(user.email_preferences);
+    }
+  }, [user]);
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -120,6 +136,37 @@ const Profile = () => {
     }
   };
 
+  const handlePreferenceChange = (key) => {
+    setEmailPreferences(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  };
+
+  const handleSavePreferences = async () => {
+    setIsLoadingPrefs(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const response = await api.put('/users/me/email-preferences', emailPreferences);
+      setSuccess('Email preferences updated successfully!');
+      
+      // Update user context with new preferences
+      if (response.data.email_preferences) {
+        updateUser({ ...user, email_preferences: response.data.email_preferences });
+      }
+
+      // Auto-hide success message
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err) {
+      console.error('Error updating preferences:', err);
+      setError(err.response?.data?.message || 'Failed to update email preferences');
+    } finally {
+      setIsLoadingPrefs(false);
+    }
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return 'Not available';
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -210,7 +257,7 @@ const Profile = () => {
                   <div className="flex space-x-3">
                     <button
                       onClick={handleCancel}
-                      className="flex items-center px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-700 dark:text-gray-300 font-medium transition-colors"
+                      className="flex items-center px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200 font-medium transition-colors"
                     >
                       <XMarkIcon className="w-4 h-4 mr-2" />
                       Cancel
@@ -360,6 +407,140 @@ const Profile = () => {
                 </div>
               )}
             </div>
+          </div>
+        </div>
+
+        {/* Email Preferences Section */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border">
+          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center">
+              <BellIcon className="w-6 h-6 text-primary-600 dark:text-primary-400 mr-3" />
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                  Email Notifications
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  Choose which emails you want to receive
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-6 space-y-6">
+            {/* All Notifications */}
+            <div className="flex items-start">
+              <div className="flex items-center h-5">
+                <input
+                  id="notifications"
+                  type="checkbox"
+                  checked={emailPreferences.notifications}
+                  onChange={() => handlePreferenceChange('notifications')}
+                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                />
+              </div>
+              <div className="ml-3">
+                <label htmlFor="notifications" className="font-medium text-gray-900 dark:text-white">
+                  All Notifications
+                </label>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Receive email for all in-app notifications
+                </p>
+              </div>
+            </div>
+
+            {/* Task Assignments */}
+            <div className="flex items-start">
+              <div className="flex items-center h-5">
+                <input
+                  id="taskAssignments"
+                  type="checkbox"
+                  checked={emailPreferences.taskAssignments}
+                  onChange={() => handlePreferenceChange('taskAssignments')}
+                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                />
+              </div>
+              <div className="ml-3">
+                <label htmlFor="taskAssignments" className="font-medium text-gray-900 dark:text-white">
+                  Task Assignments
+                </label>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Get notified when you're assigned to a task
+                </p>
+              </div>
+            </div>
+
+            {/* Task Reminders */}
+            <div className="flex items-start">
+              <div className="flex items-center h-5">
+                <input
+                  id="taskReminders"
+                  type="checkbox"
+                  checked={emailPreferences.taskReminders}
+                  onChange={() => handlePreferenceChange('taskReminders')}
+                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                />
+              </div>
+              <div className="ml-3">
+                <label htmlFor="taskReminders" className="font-medium text-gray-900 dark:text-white">
+                  Deadline Reminders
+                </label>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Receive reminders about upcoming task deadlines
+                </p>
+              </div>
+            </div>
+
+            {/* Community Updates */}
+            <div className="flex items-start">
+              <div className="flex items-center h-5">
+                <input
+                  id="communityUpdates"
+                  type="checkbox"
+                  checked={emailPreferences.communityUpdates}
+                  onChange={() => handlePreferenceChange('communityUpdates')}
+                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                />
+              </div>
+              <div className="ml-3">
+                <label htmlFor="communityUpdates" className="font-medium text-gray-900 dark:text-white">
+                  Community Updates
+                </label>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Get updates about your communities, events, and announcements
+                </p>
+              </div>
+            </div>
+
+            {/* Weekly Digest */}
+            <div className="flex items-start">
+              <div className="flex items-center h-5">
+                <input
+                  id="weeklyDigest"
+                  type="checkbox"
+                  checked={emailPreferences.weeklyDigest}
+                  onChange={() => handlePreferenceChange('weeklyDigest')}
+                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                />
+              </div>
+              <div className="ml-3">
+                <label htmlFor="weeklyDigest" className="font-medium text-gray-900 dark:text-white">
+                  Weekly Digest
+                </label>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Receive a weekly summary of your tasks and community activity
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="px-6 py-4 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 rounded-b-xl">
+            <button
+              onClick={handleSavePreferences}
+              disabled={isLoadingPrefs}
+              className="w-full sm:w-auto px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {isLoadingPrefs ? 'Saving...' : 'Save Email Preferences'}
+            </button>
           </div>
         </div>
       </div>
