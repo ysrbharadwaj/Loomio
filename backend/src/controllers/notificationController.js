@@ -1,22 +1,38 @@
-const { Notification, User, Community } = require('../models');
-const { Op } = require('sequelize');
+const { Notification, Community } = require('../models');
+
+const parsePositiveInt = (value, fallback) => {
+  const parsed = Number.parseInt(value, 10);
+  return Number.isNaN(parsed) || parsed < 1 ? fallback : parsed;
+};
+
+const buildNotificationFilters = (userId, { is_read, type }) => {
+  const whereClause = { user_id: userId };
+
+  if (is_read !== '') {
+    whereClause.is_read = is_read === 'true';
+  }
+
+  if (type) {
+    whereClause.type = type;
+  }
+
+  return whereClause;
+};
+
+const findUserNotification = (notificationId, userId) => Notification.findOne({
+  where: { notification_id: notificationId, user_id: userId }
+});
 
 // Get user notifications
 const getUserNotifications = async (req, res) => {
   try {
     const { page = 1, limit = 20, is_read = '', type = '' } = req.query;
-    const offset = (page - 1) * limit;
+    const pageNumber = parsePositiveInt(page, 1);
+    const limitNumber = parsePositiveInt(limit, 20);
+    const offset = (pageNumber - 1) * limitNumber;
     const userId = req.user.user_id;
 
-    const whereClause = { user_id: userId };
-
-    if (is_read !== '') {
-      whereClause.is_read = is_read === 'true';
-    }
-
-    if (type) {
-      whereClause.type = type;
-    }
+    const whereClause = buildNotificationFilters(userId, { is_read, type });
 
     const notifications = await Notification.findAndCountAll({
       where: whereClause,
@@ -27,8 +43,8 @@ const getUserNotifications = async (req, res) => {
           attributes: ['community_id', 'name'] 
         }
       ],
-      limit: parseInt(limit),
-      offset: parseInt(offset),
+      limit: limitNumber,
+      offset,
       order: [['created_at', 'DESC']]
     });
 
@@ -36,9 +52,9 @@ const getUserNotifications = async (req, res) => {
       notifications: notifications.rows,
       pagination: {
         total: notifications.count,
-        page: parseInt(page),
-        limit: parseInt(limit),
-        pages: Math.ceil(notifications.count / limit)
+        page: pageNumber,
+        limit: limitNumber,
+        pages: Math.ceil(notifications.count / limitNumber)
       }
     });
   } catch (error) {
@@ -53,9 +69,7 @@ const markAsRead = async (req, res) => {
     const { id } = req.params;
     const userId = req.user.user_id;
 
-    const notification = await Notification.findOne({
-      where: { notification_id: id, user_id: userId }
-    });
+    const notification = await findUserNotification(id, userId);
 
     if (!notification) {
       return res.status(404).json({ message: 'Notification not found' });
@@ -96,9 +110,7 @@ const deleteNotification = async (req, res) => {
     const { id } = req.params;
     const userId = req.user.user_id;
 
-    const notification = await Notification.findOne({
-      where: { notification_id: id, user_id: userId }
-    });
+    const notification = await findUserNotification(id, userId);
 
     if (!notification) {
       return res.status(404).json({ message: 'Notification not found' });

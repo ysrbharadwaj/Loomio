@@ -4,15 +4,14 @@ import { useNavigate } from 'react-router-dom';
 import { 
   BellIcon, 
   EnvelopeIcon, 
-  UserCircleIcon,
-  ShieldCheckIcon
+  UserCircleIcon
 } from '@heroicons/react/24/outline';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { userAPI } from '../services/api';
 
 const Settings = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [activeTab, setActiveTab] = useState('notifications');
@@ -44,20 +43,7 @@ const Settings = () => {
     setMessage({ type: '', text: '' });
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/users/me/email-preferences`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify(emailPreferences)
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to update preferences');
-      }
+      await userAPI.updateEmailPreferences(emailPreferences);
 
       setMessage({ 
         type: 'success', 
@@ -81,14 +67,6 @@ const Settings = () => {
     { id: 'notifications', name: 'Notifications', icon: BellIcon },
     { id: 'profile', name: 'Profile Settings', icon: UserCircleIcon }
   ];
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <LoadingSpinner size="lg" />
-      </div>
-    );
-  }
 
   return (
     <div className="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8">

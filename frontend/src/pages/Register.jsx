@@ -5,6 +5,7 @@ import { useTheme } from '../context/ThemeContext';
 import { EyeIcon, EyeSlashIcon, SunIcon, MoonIcon } from '@heroicons/react/24/outline';
 import LoadingSpinner from '../components/LoadingSpinner';
 import loomioLogo from '../assets/Loomio.png';
+import { getGoogleAuthUrl } from '../services/api';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -393,7 +394,7 @@ const Register = () => {
             {/* Google Sign Up Button */}
             <div>
               <a
-                href={`${import.meta.env.VITE_API_URL.replace('/api', '')}/api/auth/google`}
+                href={getGoogleAuthUrl()}
                 className="w-full inline-flex justify-center items-center py-2.5 px-4 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200"
               >
                 <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">

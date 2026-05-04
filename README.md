@@ -2,7 +2,7 @@
 
 A comprehensive full-stack application for managing community tasks, events, attendance, and contributions with role-based access control.
 
-## 🚀 Features
+##  Features
 
 ### Core Modules
 - **User Management**: Registration, authentication, and profile management
@@ -19,7 +19,7 @@ A comprehensive full-stack application for managing community tasks, events, att
 - **Community Admin**: Community-specific management and member oversight
 - **Member**: Task participation and contribution tracking
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 ### Backend
 - **Node.js** with Express.js
@@ -36,7 +36,7 @@ A comprehensive full-stack application for managing community tasks, events, att
 - **React Hook Form** for form handling
 - **Heroicons** for icons
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 Loomio/
@@ -63,7 +63,7 @@ Loomio/
 └── README.md
 ```
 
-## 🚀 Getting Started
+##  Getting Started
 
 ### Prerequisites
 - Node.js (v16 or higher)
@@ -112,13 +112,13 @@ Loomio/
    start.bat
    ```
    This script will:
-   - ✅ Check if MySQL is running
-   - ✅ Verify database connection
-   - ✅ Check environment configuration
-   - ✅ Install dependencies if needed
-   - ✅ Start backend server
-   - ✅ Start frontend server
-   - ✅ Open application in browser
+   -  Check if MySQL is running
+   -  Verify database connection
+   -  Check environment configuration
+   -  Install dependencies if needed
+   -  Start backend server
+   -  Start frontend server
+   -  Open application in browser
    
    **Option 2 - Quick Start (when already configured):**
    ```bash
@@ -223,14 +223,14 @@ Loomio/
 - **Events**: Community events and calendar entries
 - **Notifications**: In-app and email notifications
 
-## 🔐 Authentication & Authorization
+##  Authentication & Authorization
 
 - **JWT-based authentication** with role-based access control
 - **Protected routes** with middleware validation
 - **Role-based permissions** for different user types
 - **Secure password hashing** with bcryptjs
 
-## 🎨 UI/UX Features
+##  UI/UX Features
 
 - **Responsive design** with Tailwind CSS
 - **Modern interface** with clean, intuitive navigation
@@ -238,7 +238,7 @@ Loomio/
 - **Real-time updates** for task status and notifications
 - **Accessible components** following best practices
 
-## 📈 Contribution System
+##  Contribution System
 
 ### Point Allocation
 - **Task Completion**: 10 points
@@ -251,7 +251,7 @@ Loomio/
 - **Monthly reports** and analytics
 - **Achievement tracking** and milestones
 
-## 🚀 Deployment
+##  Deployment
 
 ### Backend Deployment (Railway/Render)
 1. Connect your GitHub repository
@@ -268,7 +268,7 @@ Loomio/
 - Use a cloud MySQL provider (PlanetScale, Railway DB, or similar)
 - Update environment variables with production database credentials
 
-## 🔧 API Endpoints
+##  API Endpoints
 
 ### Authentication
 - `POST /api/auth/register` - User registration
@@ -298,7 +298,7 @@ Loomio/
 - `POST /api/tasks/:id/assign` - Assign task to users
 - `PUT /api/tasks/:id/status` - Update task status
 
-## 🤝 Contributing
+##  Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
@@ -306,15 +306,15 @@ Loomio/
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📝 License
+##  License
 
 This project is licensed under the ISC License.
 
-## 🆘 Support
+##  Support
 
 For support and questions, please open an issue in the GitHub repository.
 
-## 🔮 Future Enhancements
+##  Future Enhancements
 
 - **Real-time notifications** with WebSocket integration
 - **File upload system** for task submissions

@@ -1,6 +1,9 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
+const API_ORIGIN = API_BASE_URL.endsWith('/api') ? API_BASE_URL.slice(0, -4) : API_BASE_URL;
+
+export const getGoogleAuthUrl = () => `${API_ORIGIN}/api/auth/google`;
 
 // Create axios instance
 const api = axios.create({
@@ -50,6 +53,7 @@ export const userAPI = {
   getAllUsers: (params) => api.get('/users', { params }),
   getUserById: (id) => api.get(`/users/${id}`),
   updateUser: (id, userData) => api.put(`/users/${id}`, userData),
+  updateEmailPreferences: (preferences) => api.put('/users/me/email-preferences', preferences),
   deleteUser: (id) => api.delete(`/users/${id}`),
   getUserDashboard: (id) => api.get(`/users/${id}/dashboard`),
   getLeaderboard: (communityId, params) => api.get(`/users/leaderboard/${communityId}`, { params }),
